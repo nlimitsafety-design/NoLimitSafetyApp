@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -19,7 +20,9 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.1.5",
+    "@libsql/client": "^0.17.0",
     "@next-auth/prisma-adapter": "^1.0.7",
+    "@prisma/adapter-libsql": "^7.4.2",
     "@prisma/client": "^5.20.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",

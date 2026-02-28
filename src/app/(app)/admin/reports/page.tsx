@@ -242,18 +242,18 @@ export default function ReportsPage() {
         </Card>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
           <Card>
-            <p className="text-sm text-gray-400">Totaal Diensten</p>
-            <p className="text-2xl font-bold text-white mt-1">{totalShifts}</p>
+            <p className="text-xs sm:text-sm text-gray-400">Totaal Diensten</p>
+            <p className="text-lg sm:text-2xl font-bold text-white mt-1">{totalShifts}</p>
           </Card>
           <Card>
-            <p className="text-sm text-gray-400">Totaal Uren</p>
-            <p className="text-2xl font-bold text-brand-400 mt-1">{totalHours.toFixed(1)}</p>
+            <p className="text-xs sm:text-sm text-gray-400">Totaal Uren</p>
+            <p className="text-lg sm:text-2xl font-bold text-brand-400 mt-1">{totalHours.toFixed(1)}</p>
           </Card>
           <Card>
-            <p className="text-sm text-gray-400">Totaal Bedrag</p>
-            <p className="text-2xl font-bold text-green-400 mt-1">{formatCurrency(totalAmount)}</p>
+            <p className="text-xs sm:text-sm text-gray-400">Totaal Bedrag</p>
+            <p className="text-lg sm:text-2xl font-bold text-green-400 mt-1 truncate">{formatCurrency(totalAmount)}</p>
           </Card>
         </div>
 
