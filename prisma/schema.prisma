@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  phone        String?
+  passwordHash String
+  role         String         @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
+  hourlyRate   Float          @default(0)
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  availability             Availability[]
+  recurringAvailabilities  RecurringAvailability[]
+  availabilityExceptions   AvailabilityException[]
+  shiftUsers               ShiftUser[]
+  shiftRequests            ShiftRequest[]
+
+  @@map("users")
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  status    String   @default("AVAILABLE") // AVAILABLE, UNAVAILABLE, PARTIAL
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, startTime, endTime])
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@map("availabilities")
+}
+
+model RecurringAvailability {
+  id        String   @id @default(cuid())
+  userId    String
+  weekday   Int      // 1=Maandag, 2=Dinsdag, ..., 7=Zondag (ISO)
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  validFrom DateTime // Geldig vanaf datum
+  validTo   DateTime? // Geldig tot datum (null = tot nader order)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekday])
+  @@index([userId])
+  @@map("recurring_availabilities")
+}
+
+model AvailabilityException {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  type      String   // AVAILABLE, UNAVAILABLE
+  startTime String?  // HH:mm — nullable for UNAVAILABLE (hele dag)
+  endTime   String?  // HH:mm — nullable for UNAVAILABLE (hele dag)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId])
+  @@map("availability_exceptions")
+}
+
+model Shift {
+  id        String   @id @default(cuid())
+  date      DateTime
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  location  String
+  type      String   @default("TOEZICHT") // TRAINING, TOEZICHT, EVENT, ANDERS
+  note      String?
+  status    String   @default("CONCEPT") // CONCEPT, OPEN, TOEGEWEZEN, BEVESTIGD, AFGEROND
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shiftUsers    ShiftUser[]
+  shiftRequests ShiftRequest[]
+
+  @@index([date])
+  @@index([status])
+  @@index([date, status])
+  @@map("shifts")
+}
+
+model ShiftUser {
+  id      String @id @default(cuid())
+  shiftId String
+  userId  String
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shiftId, userId])
+  @@index([userId])
+  @@index([shiftId])
+  @@map("shift_users")
+}
+
+model ShiftRequest {
+  id         String   @id @default(cuid())
+  shiftId    String
+  userId     String
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt  DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shiftId, userId])
+  @@index([shiftId])
+  @@index([userId])
+  @@index([status])
+  @@map("shift_requests")
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  address   String?
+  createdAt DateTime @default(now())
+
+  @@map("locations")
+}
