@@ -3,8 +3,12 @@ import './globals.css';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'NoLimitSafety â€” Planning & Beheer',
+  title: 'NoLimitSafety - Planning & Beheer',
   description: 'Moderne planning en personeelsbeheer voor beveiligingsbedrijven',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
