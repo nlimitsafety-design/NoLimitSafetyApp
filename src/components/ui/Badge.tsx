@@ -14,7 +14,7 @@ export default function Badge({ children, variant = 'default', size = 'sm', clas
     warning: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
     danger: 'bg-red-500/20 text-red-400 border border-red-500/30',
     info: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-    orange: 'bg-brand-500/20 text-brand-400 border border-brand-500/30',
+    orange: 'bg-accent-500/20 text-accent-400 border border-accent-500/30',
   };
 
   const sizes = {
