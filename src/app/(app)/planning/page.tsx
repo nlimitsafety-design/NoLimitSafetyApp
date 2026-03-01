@@ -397,7 +397,7 @@ export default function PlanningPage() {
             </button>
             <h2 className="text-lg font-semibold text-gray-900">
               {view === 'week'
-                ? `Week ${format(weekDays[0], 'w')} â€” ${format(weekDays[0], 'd MMM', { locale: nl })} t/m ${format(weekDays[6], 'd MMM yyyy', { locale: nl })}`
+                ? `Week ${format(weekDays[0], 'w')} - ${format(weekDays[0], 'd MMM', { locale: nl })} t/m ${format(weekDays[6], 'd MMM yyyy', { locale: nl })}`
                 : format(currentDate, 'MMMM yyyy', { locale: nl })}
             </h2>
             <button
