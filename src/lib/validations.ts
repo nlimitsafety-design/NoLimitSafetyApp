@@ -50,7 +50,7 @@ export const shiftSchema = z.object({
   startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Ongeldig tijdformaat (HH:mm)'),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Ongeldig tijdformaat (HH:mm)'),
   location: z.string().min(1, 'Locatie is verplicht'),
-  type: z.enum(['TOEZICHT', 'TRAINING', 'EVENT', 'ANDERS']),
+  type: z.string().min(1, 'Functie is verplicht'),
   note: z.string().optional(),
   status: z.enum(['CONCEPT', 'OPEN', 'TOEGEWEZEN', 'BEVESTIGD', 'AFGEROND']).default('CONCEPT'),
   employeeIds: z.array(z.string()).default([]),

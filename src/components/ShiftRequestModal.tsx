@@ -7,7 +7,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import Modal from '@/components/ui/Modal';
-import { formatDate, calculateHours, SHIFT_TYPES } from '@/lib/utils';
+import { formatDate, calculateHours } from '@/lib/utils';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -34,7 +34,7 @@ export default function ShiftRequestModal({ isOpen, onClose, shift, onAction }: 
   if (!shift) return null;
 
   const hours = calculateHours(shift.startTime, shift.endTime);
-  const typeLabel = SHIFT_TYPES.find((t) => t.value === shift.type)?.label || shift.type;
+  const typeLabel = shift.type;
   const pendingCount = requests.filter((r: any) => r.status === 'PENDING').length;
 
   async function handleAction(requestId: string, action: 'APPROVED' | 'REJECTED') {

@@ -277,13 +277,7 @@ export async function GET(req: NextRequest) {
 /* ── Helpers ───────────────────────────────────────────── */
 
 function translateType(type: string): string {
-  const map: Record<string, string> = {
-    TOEZICHT: 'Toezicht',
-    TRAINING: 'Training',
-    EVENT: 'Evenement',
-    ANDERS: 'Anders',
-  };
-  return map[type] || type;
+  return type;
 }
 
 function translateStatus(status: string): string {

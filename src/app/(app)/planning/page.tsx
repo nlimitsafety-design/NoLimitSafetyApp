@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import { useShifts, useEmployees, fetcher } from '@/lib/swr';
+import { useShifts, useEmployees, useFuncties, fetcher } from '@/lib/swr';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -14,7 +14,6 @@ import {
   formatDate,
   getWeekDays,
   calculateHours,
-  SHIFT_TYPES,
   SHIFT_STATUSES,
   TIME_SLOTS,
   hasTimeOverlap,
@@ -106,6 +105,7 @@ export default function PlanningPage() {
   const shifts = rawShifts as Shift[];
   const { data: allEmployees = [] } = useEmployees();
   const employees = useMemo(() => allEmployees.filter((e: any) => e.active) as Employee[], [allEmployees]);
+  const { data: functies = [] } = useFuncties();
 
   // Form state
   const [form, setForm] = useState({
@@ -113,7 +113,7 @@ export default function PlanningPage() {
     startTime: '08:00',
     endTime: '17:00',
     location: '',
-    type: 'TOEZICHT',
+    type: '',
     note: '',
     status: 'CONCEPT',
     employeeIds: [] as string[],
@@ -128,7 +128,7 @@ export default function PlanningPage() {
       startTime: '08:00',
       endTime: '17:00',
       location: '',
-      type: 'TOEZICHT',
+      type: functies[0]?.name || '',
       note: '',
       status: 'CONCEPT',
       employeeIds: [],
@@ -223,6 +223,9 @@ export default function PlanningPage() {
         toast.success('Dienst verwijderd');
         setModalOpen(false);
         mutateShifts();
+      } else {
+        const data = await res.json();
+        toast.error(data.error || 'Kon dienst niet verwijderen');
       }
     } catch {
       toast.error('Fout bij verwijderen');
@@ -301,8 +304,15 @@ export default function PlanningPage() {
   };
 
   const typeBadge = (type: string) => {
-    const t = SHIFT_TYPES.find(st => st.value === type);
-    return <Badge variant="orange">{t?.label || type}</Badge>;
+    const f = functies.find((ft: any) => ft.name === type);
+    return (
+      <span
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+        style={f ? { backgroundColor: f.color + '33', color: f.color, border: `1px solid ${f.color}55` } : {}}
+      >
+        {type}
+      </span>
+    );
   };
 
   // Get shifts for a specific day
@@ -638,10 +648,10 @@ export default function PlanningPage() {
                   options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
                 />
                 <Select
-                  label="Type"
+                  label="Functie"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  options={SHIFT_TYPES.map(t => ({ value: t.value, label: t.label }))}
+                  options={functies.map((f: any) => ({ value: f.name, label: f.name }))}
                 />
                 <Select
                   label="Status"

@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useOpenShifts, useMyRequests } from '@/lib/swr';
+import { useOpenShifts, useMyRequests, useFuncties } from '@/lib/swr';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { formatDate, calculateHours, SHIFT_TYPES } from '@/lib/utils';
+import { formatDate, calculateHours } from '@/lib/utils';
 import {
   BriefcaseIcon,
   ClockIcon,
@@ -22,6 +22,7 @@ export default function OpenShiftsPage() {
   const { data: session } = useSession();
   const { data: openShifts = [], isLoading, mutate: mutateOpen } = useOpenShifts();
   const { data: myRequests = [], mutate: mutateRequests } = useMyRequests();
+  const { data: functies = [] } = useFuncties();
   const [requesting, setRequesting] = useState<string | null>(null);
 
   const isEmployee = (session?.user as any)?.role === 'EMPLOYEE';
@@ -41,7 +42,7 @@ export default function OpenShiftsPage() {
         mutateRequests();
       } else {
         const data = await res.json();
-        toast.error(data.error || 'Aanvraag mislukt');
+        toast.error(data.details || data.error || 'Aanvraag mislukt');
       }
     } catch {
       toast.error('Er ging iets mis');
@@ -51,8 +52,15 @@ export default function OpenShiftsPage() {
   }
 
   const typeBadge = (type: string) => {
-    const t = SHIFT_TYPES.find((st) => st.value === type);
-    return <Badge variant="orange">{t?.label || type}</Badge>;
+    const f = functies.find((ft: any) => ft.name === type);
+    return (
+      <span
+        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+        style={f ? { backgroundColor: f.color + '33', color: f.color, border: `1px solid ${f.color}55` } : {}}
+      >
+        {type}
+      </span>
+    );
   };
 
   // Pending requests from myRequests (for "Mijn aanvragen" section)

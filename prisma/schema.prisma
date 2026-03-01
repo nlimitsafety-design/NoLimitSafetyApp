@@ -148,3 +148,13 @@ model Location {
 
   @@map("locations")
 }
+
+model Functie {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String   @default("#f97316") // hex color for badge
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("functies")
+}

@@ -66,9 +66,13 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   if (error) return error;
 
   try {
+    // Manually delete related records first (Turso may not enforce cascades)
+    await prisma.shiftRequest.deleteMany({ where: { shiftId: params.id } });
+    await prisma.shiftUser.deleteMany({ where: { shiftId: params.id } });
     await prisma.shift.delete({ where: { id: params.id } });
     return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: 'Kon dienst niet verwijderen' }, { status: 500 });
+  } catch (err: any) {
+    console.error('Delete shift error:', err);
+    return NextResponse.json({ error: 'Kon dienst niet verwijderen', details: err?.message }, { status: 500 });
   }
 }

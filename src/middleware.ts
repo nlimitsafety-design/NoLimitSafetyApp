@@ -15,6 +15,7 @@ export const config = {
     '/admin/:path*',
     '/settings/:path*',
     '/open-shifts/:path*',
+    '/functies/:path*',
     '/api/employees/:path*',
     '/api/availability/:path*',
     '/api/availability-exceptions/:path*',
@@ -25,6 +26,7 @@ export const config = {
     '/api/employee-status/:path*',
     '/api/profile/:path*',
     '/api/dashboard/:path*',
+    '/api/functies/:path*',
     '/api/auth/change-password',
   ],
 };

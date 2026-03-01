@@ -85,3 +85,8 @@ export function useShiftRequests(shiftId: string | null) {
 export function useMyRequests() {
   return useSWR<any[]>('/api/shift-requests', fetcher, swrDefaults);
 }
+
+export function useFuncties(showAll = false) {
+  const key = showAll ? '/api/functies?all=true' : '/api/functies';
+  return useSWR<any[]>(key, fetcher, swrDefaults);
+}

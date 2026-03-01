@@ -1,7 +1,21 @@
 import { PrismaClient } from '@prisma/client';
+import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { createClient } from '@libsql/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+function createPrisma(): PrismaClient {
+  if (process.env.TURSO_DATABASE_URL) {
+    const libsql = createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+    const adapter = new PrismaLibSQL(libsql);
+    return new PrismaClient({ adapter } as any);
+  }
+  return new PrismaClient();
+}
+
+const prisma = createPrisma();
 
 async function main() {
   console.log('🌱 Seeding database...');
@@ -15,6 +29,15 @@ async function main() {
   await prisma.availability.deleteMany();
   await prisma.user.deleteMany();
   await prisma.location.deleteMany();
+  await prisma.functie.deleteMany();
+
+  // Create functies
+  await Promise.all([
+    prisma.functie.create({ data: { name: 'Toezicht', color: '#f97316' } }),
+    prisma.functie.create({ data: { name: 'Training', color: '#3b82f6' } }),
+    prisma.functie.create({ data: { name: 'Evenement', color: '#a855f7' } }),
+    prisma.functie.create({ data: { name: 'Beveiliging', color: '#22c55e' } }),
+  ]);
 
   // Create locations
   const locations = await Promise.all([
@@ -137,7 +160,7 @@ async function main() {
       startTime: '07:00',
       endTime: '15:00',
       location: 'Shell Pernis',
-      type: 'TOEZICHT',
+      type: 'Toezicht',
       note: 'Toegangscontrole hoofdpoort',
       status: 'BEVESTIGD',
     },
@@ -153,7 +176,7 @@ async function main() {
       startTime: '08:00',
       endTime: '17:00',
       location: 'Ahoy Rotterdam',
-      type: 'EVENT',
+      type: 'Evenement',
       note: 'Bouwbeurs beveiligen',
       status: 'BEVESTIGD',
     },
@@ -169,7 +192,7 @@ async function main() {
       startTime: '09:00',
       endTime: '13:00',
       location: 'Rotterdam Centraal',
-      type: 'TRAINING',
+      type: 'Training',
       note: 'BHV training nieuwe medewerkers',
       status: 'CONCEPT',
     },
@@ -185,7 +208,7 @@ async function main() {
       startTime: '06:00',
       endTime: '14:00',
       location: 'Europoort Terminal',
-      type: 'TOEZICHT',
+      type: 'Toezicht',
       note: 'Nachtdienst aflossing',
       status: 'BEVESTIGD',
     },
@@ -201,7 +224,7 @@ async function main() {
       startTime: '15:00',
       endTime: '23:00',
       location: 'Ahoy Rotterdam',
-      type: 'EVENT',
+      type: 'Evenement',
       note: 'Concert beveiligen',
       status: 'CONCEPT',
     },
