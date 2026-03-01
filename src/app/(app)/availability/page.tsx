@@ -18,10 +18,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DocumentDuplicateIcon,
-  CalendarIcon,
-  ClockIcon,
   CalendarDaysIcon,
   Squares2X2Icon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import {
   format,
@@ -42,8 +43,7 @@ import {
 import { nl } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 
-type TabType = 'recurring' | 'exceptions';
-type ExceptionView = 'week' | 'month';
+type CalendarView = 'week' | 'month';
 
 interface RecurringItem {
   id: string;
@@ -66,32 +66,34 @@ interface ExceptionItem {
 
 export default function AvailabilityPage() {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<TabType>('recurring');
   const isEmployee = session?.user?.role === 'EMPLOYEE';
 
   // Recurring data
   const { data: rawRecurring = [], mutate: mutateRecurring } = useRecurringAvailability();
   const recurring = rawRecurring as RecurringItem[];
 
-  // Exception view mode
-  const [exceptionView, setExceptionView] = useState<ExceptionView>('month');
+  // Calendar view mode
+  const [calendarView, setCalendarView] = useState<CalendarView>('month');
 
   // Week state
-  const [exceptionWeek, setExceptionWeek] = useState(new Date());
-  const exWeekStart = startOfWeek(exceptionWeek, { weekStartsOn: 1 });
-  const exWeekEnd = addDays(exWeekStart, 6);
+  const [currentWeek, setCurrentWeek] = useState(new Date());
+  const weekStart = startOfWeek(currentWeek, { weekStartsOn: 1 });
+  const weekEnd = addDays(weekStart, 6);
 
   // Month state
-  const [exceptionMonth, setExceptionMonth] = useState(new Date());
-  const monthStart = startOfMonth(exceptionMonth);
-  const monthEnd = endOfMonth(exceptionMonth);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
 
   // Compute date range based on view
-  const viewStart = exceptionView === 'week' ? format(exWeekStart, 'yyyy-MM-dd') : format(monthStart, 'yyyy-MM-dd');
-  const viewEnd = exceptionView === 'week' ? format(exWeekEnd, 'yyyy-MM-dd') : format(monthEnd, 'yyyy-MM-dd');
+  const viewStart = calendarView === 'week' ? format(weekStart, 'yyyy-MM-dd') : format(monthStart, 'yyyy-MM-dd');
+  const viewEnd = calendarView === 'week' ? format(weekEnd, 'yyyy-MM-dd') : format(monthEnd, 'yyyy-MM-dd');
 
   const { data: rawExceptions = [], mutate: mutateExceptions } = useAvailabilityExceptions(viewStart, viewEnd);
   const exceptions = rawExceptions as ExceptionItem[];
+
+  // Recurring section expanded
+  const [recurringOpen, setRecurringOpen] = useState(false);
 
   // Recurring modal
   const [recurringModal, setRecurringModal] = useState(false);
@@ -105,10 +107,10 @@ export default function AvailabilityPage() {
     note: '',
   });
 
-  // Exception modal
-  const [exceptionModal, setExceptionModal] = useState(false);
-  const [editingException, setEditingException] = useState<ExceptionItem | null>(null);
-  const [exceptionForm, setExceptionForm] = useState({
+  // Exception modal (now called "Beschikbaarheid" modal)
+  const [planModal, setPlanModal] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<ExceptionItem | null>(null);
+  const [planForm, setPlanForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
     type: 'AVAILABLE' as 'AVAILABLE' | 'UNAVAILABLE',
     startTime: '08:00',
@@ -118,7 +120,7 @@ export default function AvailabilityPage() {
 
   // Copy week modal
   const [copyModal, setCopyModal] = useState(false);
-  const [copyTarget, setCopyTarget] = useState(format(addWeeks(exWeekStart, 1), 'yyyy-MM-dd'));
+  const [copyTarget, setCopyTarget] = useState(format(addWeeks(weekStart, 1), 'yyyy-MM-dd'));
   const [copying, setCopying] = useState(false);
 
   // Fill month modal
@@ -145,16 +147,16 @@ export default function AvailabilityPage() {
   }, [recurring]);
 
   // Week days for week view
-  const exceptionDays = useMemo(() => {
+  const weekDays = useMemo(() => {
     const days: Date[] = [];
-    for (let i = 0; i < 7; i++) days.push(addDays(exWeekStart, i));
+    for (let i = 0; i < 7; i++) days.push(addDays(weekStart, i));
     return days;
-  }, [exWeekStart]);
+  }, [weekStart]);
 
   // Month calendar grid
   const monthCalendarDays = useMemo(() => {
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-    const firstDayOfWeek = getDay(monthStart); // 0=Sun, 1=Mon
+    const firstDayOfWeek = getDay(monthStart);
     const mondayOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
     const prefix: (Date | null)[] = Array(mondayOffset).fill(null);
     return [...prefix, ...days];
@@ -236,7 +238,7 @@ export default function AvailabilityPage() {
         return;
       }
 
-      toast.success(isEdit ? 'Vaste beschikbaarheid bijgewerkt' : 'Vaste beschikbaarheid opgeslagen');
+      toast.success(isEdit ? 'Vaste tijd bijgewerkt' : 'Vaste tijd opgeslagen');
       setRecurringModal(false);
       setEditingRecurring(null);
       mutateRecurring();
@@ -262,44 +264,44 @@ export default function AvailabilityPage() {
     }
   }
 
-  // === EXCEPTION HANDLERS ===
-  function openCreateException(date?: Date) {
-    setEditingException(null);
-    setExceptionForm({
+  // === PLAN (EXCEPTION) HANDLERS ===
+  function openCreatePlan(date?: Date) {
+    setEditingPlan(null);
+    setPlanForm({
       date: date ? format(date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
       type: 'AVAILABLE',
       startTime: '08:00',
       endTime: '17:00',
       note: '',
     });
-    setExceptionModal(true);
+    setPlanModal(true);
   }
 
-  function openEditException(item: ExceptionItem) {
-    setEditingException(item);
-    setExceptionForm({
+  function openEditPlan(item: ExceptionItem) {
+    setEditingPlan(item);
+    setPlanForm({
       date: format(new Date(item.date), 'yyyy-MM-dd'),
       type: item.type as 'AVAILABLE' | 'UNAVAILABLE',
       startTime: item.startTime || '08:00',
       endTime: item.endTime || '17:00',
       note: item.note || '',
     });
-    setExceptionModal(true);
+    setPlanModal(true);
   }
 
-  async function handleExceptionSubmit(e: React.FormEvent) {
+  async function handlePlanSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
 
     try {
-      const isEdit = !!editingException;
+      const isEdit = !!editingPlan;
       const payload = {
-        ...(isEdit ? { id: editingException!.id } : {}),
-        date: exceptionForm.date,
-        type: exceptionForm.type,
-        startTime: exceptionForm.type === 'UNAVAILABLE' ? null : exceptionForm.startTime,
-        endTime: exceptionForm.type === 'UNAVAILABLE' ? null : exceptionForm.endTime,
-        note: exceptionForm.note || undefined,
+        ...(isEdit ? { id: editingPlan!.id } : {}),
+        date: planForm.date,
+        type: planForm.type,
+        startTime: planForm.type === 'UNAVAILABLE' ? null : planForm.startTime,
+        endTime: planForm.type === 'UNAVAILABLE' ? null : planForm.endTime,
+        note: planForm.note || undefined,
       };
 
       const res = await fetch('/api/availability-exceptions', {
@@ -315,20 +317,20 @@ export default function AvailabilityPage() {
         return;
       }
 
-      toast.success(isEdit ? 'Uitzondering bijgewerkt' : 'Uitzondering opgeslagen');
-      setExceptionModal(false);
-      setEditingException(null);
+      toast.success(isEdit ? 'Beschikbaarheid bijgewerkt' : 'Beschikbaarheid opgeslagen');
+      setPlanModal(false);
+      setEditingPlan(null);
       mutateExceptions();
     } catch (err) {
-      console.error('Exception save error:', err);
+      console.error('Plan save error:', err);
       toast.error('Fout bij opslaan');
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleDeleteException(id: string) {
-    if (!confirm('Weet je zeker dat je deze uitzondering wilt verwijderen?')) return;
+  async function handleDeletePlan(id: string) {
+    if (!confirm('Weet je zeker dat je dit wilt verwijderen?')) return;
     try {
       const res = await fetch(`/api/availability-exceptions?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -336,7 +338,7 @@ export default function AvailabilityPage() {
         mutateExceptions();
       }
     } catch (err) {
-      console.error('Exception delete error:', err);
+      console.error('Plan delete error:', err);
       toast.error('Fout bij verwijderen');
     }
   }
@@ -349,7 +351,7 @@ export default function AvailabilityPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fromWeekStartDate: format(exWeekStart, 'yyyy-MM-dd'),
+          fromWeekStartDate: format(weekStart, 'yyyy-MM-dd'),
           toWeekStartDate: copyTarget,
         }),
       });
@@ -360,8 +362,8 @@ export default function AvailabilityPage() {
         return;
       }
 
-      const msg = `${data.createdCount} uitzondering(en) gekopieerd${
-        data.skippedDates?.length > 0 ? `, ${data.skippedDates.length} datum(s) overgeslagen` : ''
+      const msg = `${data.createdCount} dag(en) gekopieerd${
+        data.skippedDates?.length > 0 ? `, ${data.skippedDates.length} overgeslagen` : ''
       }`;
       toast.success(msg);
       setCopyModal(false);
@@ -413,7 +415,7 @@ export default function AvailabilityPage() {
         return;
       }
 
-      toast.success(`${data.created} dag(en) ingevuld${data.skipped > 0 ? `, ${data.skipped} overgeslagen (al ingevuld)` : ''}`);
+      toast.success(`${data.created} dag(en) ingevuld${data.skipped > 0 ? `, ${data.skipped} overgeslagen` : ''}`);
       setFillMonthModal(false);
       mutateExceptions();
     } catch (err) {
@@ -424,404 +426,473 @@ export default function AvailabilityPage() {
     }
   }
 
+  // Count recurring items
+  const recurringCount = recurring.length;
+
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h1 className="page-title">
             {isEmployee ? 'Mijn Beschikbaarheid' : 'Beschikbaarheid'}
           </h1>
           <p className="page-subtitle">
-            Stel je beschikbaarheid in en beheer uitzonderingen
+            Plan je beschikbaarheid in per dag of voor een hele maand
           </p>
         </div>
       </div>
 
-      {/* Tabs — full width on mobile */}
-      <div className="flex bg-navy-800 rounded-lg p-0.5 mb-6 w-full sm:w-fit">
-        <button
-          onClick={() => setActiveTab('recurring')}
-          className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-            activeTab === 'recurring' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          <ClockIcon className="h-4 w-4" />
-          <span>Vast</span>
-        </button>
-        <button
-          onClick={() => setActiveTab('exceptions')}
-          className={`flex-1 sm:flex-initial px-4 py-2.5 rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-            activeTab === 'exceptions' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-white'
-          }`}
-        >
-          <CalendarIcon className="h-4 w-4" />
-          <span>Uitzonderingen</span>
-        </button>
-      </div>
+      {/* ==================== CALENDAR TOOLBAR ==================== */}
+      <Card className="mb-4">
+        <div className="flex flex-col gap-3">
+          {/* Top row: view toggle + actions */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {/* View toggle */}
+            <div className="flex bg-navy-900 rounded-lg p-0.5">
+              <button
+                onClick={() => setCalendarView('month')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                  calendarView === 'month' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <CalendarDaysIcon className="h-3.5 w-3.5" />
+                Maand
+              </button>
+              <button
+                onClick={() => setCalendarView('week')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                  calendarView === 'week' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                <Squares2X2Icon className="h-3.5 w-3.5" />
+                Week
+              </button>
+            </div>
 
-      {/* ==================== TAB 1: VASTE BESCHIKBAARHEID ==================== */}
-      {activeTab === 'recurring' && (
-        <div>
-          <div className="flex justify-end mb-4">
-            <Button onClick={() => openCreateRecurring()}>
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Tijdslot toevoegen
-            </Button>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              {calendarView === 'month' && (
+                <Button size="sm" variant="ghost" onClick={() => {
+                  setFillMonthForm({
+                    type: 'AVAILABLE',
+                    startTime: '08:00',
+                    endTime: '17:00',
+                    includeWeekends: false,
+                    note: '',
+                  });
+                  setFillMonthModal(true);
+                }}>
+                  <CalendarDaysIcon className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Hele maand invullen</span>
+                  <span className="sm:hidden">Maand</span>
+                </Button>
+              )}
+              {calendarView === 'week' && (
+                <Button size="sm" variant="ghost" onClick={() => setCopyModal(true)}>
+                  <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">Kopieer week</span>
+                  <span className="sm:hidden">Kopieer</span>
+                </Button>
+              )}
+              <Button size="sm" onClick={() => openCreatePlan()}>
+                <PlusIcon className="h-4 w-4 mr-1" />
+                <span className="hidden sm:inline">Dag inplannen</span>
+                <span className="sm:hidden">Nieuw</span>
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-            {WEEKDAYS.map((day) => {
-              const items = recurringByDay[day.value] || [];
+          {/* Navigation row */}
+          <div className="flex items-center justify-center gap-1 sm:gap-2">
+            <button
+              onClick={() => calendarView === 'week'
+                ? setCurrentWeek(subWeeks(currentWeek, 1))
+                : setCurrentMonth(subMonths(currentMonth, 1))
+              }
+              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
+            >
+              <ChevronLeftIcon className="h-5 w-5" />
+            </button>
+            <h2 className="text-sm sm:text-lg font-semibold text-white text-center min-w-0 flex-1 sm:flex-initial sm:min-w-[240px]">
+              {calendarView === 'week' ? (
+                <>
+                  <span className="sm:hidden">Wk {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} - {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                  <span className="hidden sm:inline">Week {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                </>
+              ) : (
+                <span className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</span>
+              )}
+            </h2>
+            <button
+              onClick={() => calendarView === 'week'
+                ? setCurrentWeek(addWeeks(currentWeek, 1))
+                : setCurrentMonth(addMonths(currentMonth, 1))
+              }
+              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
+            >
+              <ChevronRightIcon className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </Card>
+
+      {/* ==================== MONTH VIEW ==================== */}
+      {calendarView === 'month' && (
+        <div className="mb-6">
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((d) => (
+              <div key={d} className="text-center text-[10px] sm:text-xs font-medium text-gray-500 py-1.5">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar cells */}
+          <div className="grid grid-cols-7 gap-1">
+            {monthCalendarDays.map((day, idx) => {
+              if (!day) {
+                return <div key={`empty-${idx}`} className="min-h-[56px] sm:min-h-[80px]" />;
+              }
+
+              const dateStr = format(day, 'yyyy-MM-dd');
+              const dayItems = exceptionsByDate[dateStr] || [];
+              const isToday = isSameDay(day, new Date());
+              const isPast = isBefore(day, new Date()) && !isToday;
+              const weekend = isWeekend(day);
+
+              const hasAvailable = dayItems.some((e) => e.type === 'AVAILABLE');
+              const hasUnavailable = dayItems.some((e) => e.type === 'UNAVAILABLE');
+
               return (
-                <Card key={day.value} className="min-h-[100px]">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">{day.short}</p>
-                      <p className="text-sm font-bold text-white">{day.label}</p>
-                    </div>
-                    <button
-                      onClick={() => openCreateRecurring(day.value)}
-                      className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
-                      title="Tijdslot toevoegen"
-                    >
-                      <PlusIcon className="h-4 w-4" />
-                    </button>
+                <div
+                  key={dateStr}
+                  onClick={() => dayItems.length === 1 ? openEditPlan(dayItems[0]) : openCreatePlan(day)}
+                  className={`min-h-[56px] sm:min-h-[80px] rounded-lg border p-1 sm:p-2 cursor-pointer transition-all active:scale-[0.97] select-none ${
+                    isToday
+                      ? 'border-brand-500/50 bg-brand-500/5'
+                      : isPast
+                        ? 'border-navy-700/50 bg-navy-900/30 opacity-50'
+                        : weekend
+                          ? 'border-navy-700/50 bg-navy-800/30'
+                          : 'border-navy-700 bg-navy-800/50 hover:border-navy-600 active:border-navy-500'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span className={`text-xs sm:text-sm font-semibold leading-none ${
+                      isToday ? 'text-brand-400' : isPast ? 'text-gray-600' : weekend ? 'text-gray-500' : 'text-white'
+                    }`}>
+                      {format(day, 'd')}
+                    </span>
+                    {dayItems.length > 1 && (
+                      <span className="text-[9px] sm:text-[10px] bg-navy-600 text-gray-300 rounded-full px-1 leading-relaxed">
+                        {dayItems.length}
+                      </span>
+                    )}
                   </div>
 
-                  {items.length > 0 ? (
-                    <div className="space-y-2">
-                      {items.map((item) => (
+                  {dayItems.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      {hasAvailable && (
+                        <div className="flex items-center gap-0.5 sm:gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                          <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">
+                            {dayItems.find((e) => e.type === 'AVAILABLE')?.startTime || ''}
+                            {dayItems.find((e) => e.type === 'AVAILABLE')?.endTime
+                              ? `–${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
+                              : ''}
+                          </span>
+                        </div>
+                      )}
+                      {hasUnavailable && (
+                        <div className="flex items-center gap-0.5 sm:gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                          <span className="text-[9px] sm:text-xs text-red-400 truncate leading-tight">Vrij</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Legend */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-[10px] sm:text-xs text-gray-500">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+              Beschikbaar
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              Niet beschikbaar
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-navy-600" />
+              Niet ingevuld
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== WEEK VIEW ==================== */}
+      {calendarView === 'week' && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 mb-6">
+          {weekDays.map((day) => {
+            const dayItems = exceptions.filter((e) => isSameDay(new Date(e.date), day));
+            const isToday = isSameDay(day, new Date());
+
+            return (
+              <Card
+                key={day.toISOString()}
+                className={`min-h-[100px] ${isToday ? 'border-brand-500/50 ring-1 ring-brand-500/20' : ''}`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-400' : 'text-gray-500'}`}>
+                      {format(day, 'EEE', { locale: nl })}
+                    </p>
+                    <p className={`text-lg font-bold ${isToday ? 'text-brand-400' : 'text-white'}`}>
+                      {format(day, 'd')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openCreatePlan(day)}
+                    className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
+                    title="Beschikbaarheid toevoegen"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {dayItems.length > 0 ? (
+                  <div className="space-y-2">
+                    {dayItems.map((item) => {
+                      const isAvailable = item.type === 'AVAILABLE';
+                      return (
                         <div
                           key={item.id}
-                          className="p-2.5 bg-green-500/10 border border-green-500/20 rounded-lg text-xs cursor-pointer hover:bg-green-500/15 active:bg-green-500/20"
-                          onClick={() => openEditRecurring(item)}
+                          className={`p-2.5 rounded-lg text-xs cursor-pointer transition-colors ${
+                            isAvailable
+                              ? 'bg-green-500/10 border border-green-500/20 hover:bg-green-500/15 active:bg-green-500/20'
+                              : 'bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 active:bg-red-500/20'
+                          }`}
+                          onClick={() => openEditPlan(item)}
                         >
                           <div className="flex items-center justify-between">
-                            <Badge variant="success" size="sm">Beschikbaar</Badge>
-                            {/* Always visible on mobile */}
+                            <Badge variant={isAvailable ? 'success' : 'danger'} size="sm">
+                              {isAvailable ? 'Beschikbaar' : 'Niet beschikbaar'}
+                            </Badge>
                             <div className="flex items-center gap-1">
                               <button
-                                onClick={(e) => { e.stopPropagation(); openEditRecurring(item); }}
+                                onClick={(e) => { e.stopPropagation(); openEditPlan(item); }}
                                 className="p-1.5 text-gray-400 hover:text-brand-400 active:text-brand-300 rounded"
                               >
                                 <PencilSquareIcon className="h-4 w-4" />
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteRecurring(item.id); }}
+                                onClick={(e) => { e.stopPropagation(); handleDeletePlan(item.id); }}
                                 className="p-1.5 text-gray-400 hover:text-red-400 active:text-red-300 rounded"
                               >
                                 <TrashIcon className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
-                          <p className="text-green-400 font-medium mt-1">{item.startTime} – {item.endTime}</p>
-                          <p className="text-gray-500 mt-0.5">
-                            Vanaf {formatDate(item.validFrom, 'd MMM yyyy')}
-                            {item.validTo ? ` t/m ${formatDate(item.validTo, 'd MMM yyyy')}` : ''}
-                          </p>
-                          {item.note && <p className="text-gray-600 mt-0.5 italic">{item.note}</p>}
+                          {item.startTime && item.endTime ? (
+                            <p className={`mt-1 font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                              {item.startTime} – {item.endTime}
+                            </p>
+                          ) : (
+                            <p className="text-red-400 mt-1 font-medium">Hele dag</p>
+                          )}
+                          {item.note && <p className="text-gray-500 mt-0.5 italic">{item.note}</p>}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-600 italic">Geen tijdsloten</p>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-600 italic">Niet ingevuld</p>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 
-      {/* ==================== TAB 2: UITZONDERINGEN ==================== */}
-      {activeTab === 'exceptions' && (
-        <div>
-          {/* View toggle + actions */}
-          <Card className="mb-4">
-            <div className="flex flex-col gap-3">
-              {/* Top row: view toggle + fill month */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                {/* View toggle */}
-                <div className="flex bg-navy-900 rounded-lg p-0.5">
-                  <button
-                    onClick={() => setExceptionView('week')}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                      exceptionView === 'week' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    <Squares2X2Icon className="h-3.5 w-3.5" />
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setExceptionView('month')}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                      exceptionView === 'month' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
-                    }`}
-                  >
-                    <CalendarDaysIcon className="h-3.5 w-3.5" />
-                    Maand
-                  </button>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2">
-                  {exceptionView === 'month' && (
-                    <Button size="sm" variant="ghost" onClick={() => {
-                      setFillMonthForm({
-                        type: 'AVAILABLE',
-                        startTime: '08:00',
-                        endTime: '17:00',
-                        includeWeekends: false,
-                        note: '',
-                      });
-                      setFillMonthModal(true);
-                    }}>
-                      <CalendarDaysIcon className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Vul maand in</span>
-                      <span className="sm:hidden">Invullen</span>
-                    </Button>
-                  )}
-                  {exceptionView === 'week' && (
-                    <Button size="sm" variant="ghost" onClick={() => setCopyModal(true)}>
-                      <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
-                      <span className="hidden sm:inline">Kopieer week</span>
-                      <span className="sm:hidden">Kopieer</span>
-                    </Button>
-                  )}
-                  <Button size="sm" onClick={() => openCreateException()}>
-                    <PlusIcon className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">Uitzondering</span>
-                    <span className="sm:hidden">Nieuw</span>
-                  </Button>
-                </div>
-              </div>
-
-              {/* Navigation row */}
-              <div className="flex items-center justify-center gap-1 sm:gap-2">
-                <button
-                  onClick={() => exceptionView === 'week'
-                    ? setExceptionWeek(subWeeks(exceptionWeek, 1))
-                    : setExceptionMonth(subMonths(exceptionMonth, 1))
-                  }
-                  className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
-                >
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </button>
-                <h2 className="text-sm sm:text-lg font-semibold text-white text-center min-w-0 flex-1 sm:flex-initial sm:min-w-[240px]">
-                  {exceptionView === 'week' ? (
-                    <>
-                      <span className="sm:hidden">Wk {format(exWeekStart, 'w')} — {format(exWeekStart, 'd MMM', { locale: nl })} - {format(exWeekEnd, 'd MMM', { locale: nl })}</span>
-                      <span className="hidden sm:inline">Week {format(exWeekStart, 'w')} — {format(exWeekStart, 'd MMM', { locale: nl })} t/m {format(exWeekEnd, 'd MMM', { locale: nl })}</span>
-                    </>
-                  ) : (
-                    <span className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</span>
-                  )}
-                </h2>
-                <button
-                  onClick={() => exceptionView === 'week'
-                    ? setExceptionWeek(addWeeks(exceptionWeek, 1))
-                    : setExceptionMonth(addMonths(exceptionMonth, 1))
-                  }
-                  className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
-                >
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-              </div>
+      {/* ==================== VASTE TIJDEN (COLLAPSIBLE) ==================== */}
+      <div className="border border-navy-700 rounded-xl overflow-hidden">
+        <button
+          onClick={() => setRecurringOpen(!recurringOpen)}
+          className="w-full flex items-center justify-between p-4 bg-navy-800/50 hover:bg-navy-800 transition-colors active:bg-navy-700"
+        >
+          <div className="flex items-center gap-3">
+            <ClockIcon className="h-5 w-5 text-brand-400" />
+            <div className="text-left">
+              <p className="text-sm font-semibold text-white">Vaste beschikbaarheid</p>
+              <p className="text-xs text-gray-400">
+                {recurringCount > 0
+                  ? `${recurringCount} vaste tijdslot${recurringCount !== 1 ? 'en' : ''} ingesteld`
+                  : 'Stel wekelijks terugkerende tijden in'
+                }
+              </p>
             </div>
-          </Card>
+          </div>
+          {recurringOpen
+            ? <ChevronUpIcon className="h-5 w-5 text-gray-400" />
+            : <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+          }
+        </button>
 
-          {/* WEEK VIEW */}
-          {exceptionView === 'week' && (
+        {recurringOpen && (
+          <div className="p-4 border-t border-navy-700">
+            <div className="flex justify-end mb-4">
+              <Button size="sm" onClick={() => openCreateRecurring()}>
+                <PlusIcon className="h-4 w-4 mr-1" />
+                Vaste tijd toevoegen
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-              {exceptionDays.map((day) => {
-                const dayExceptions = exceptions.filter((e) => isSameDay(new Date(e.date), day));
-                const isToday = isSameDay(day, new Date());
-
+              {WEEKDAYS.map((day) => {
+                const items = recurringByDay[day.value] || [];
                 return (
-                  <Card
-                    key={day.toISOString()}
-                    className={`min-h-[100px] ${isToday ? 'border-brand-500/50 ring-1 ring-brand-500/20' : ''}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
+                  <div key={day.value} className="bg-navy-800/30 border border-navy-700/50 rounded-lg p-3 min-h-[80px]">
+                    <div className="flex items-center justify-between mb-2">
                       <div>
-                        <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-400' : 'text-gray-500'}`}>
-                          {format(day, 'EEE', { locale: nl })}
-                        </p>
-                        <p className={`text-lg font-bold ${isToday ? 'text-brand-400' : 'text-white'}`}>
-                          {format(day, 'd')}
-                        </p>
+                        <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">{day.short}</p>
+                        <p className="text-xs font-bold text-white">{day.label}</p>
                       </div>
                       <button
-                        onClick={() => openCreateException(day)}
-                        className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
-                        title="Uitzondering toevoegen"
+                        onClick={() => openCreateRecurring(day.value)}
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
                       >
-                        <PlusIcon className="h-4 w-4" />
+                        <PlusIcon className="h-3.5 w-3.5" />
                       </button>
                     </div>
 
-                    {dayExceptions.length > 0 ? (
-                      <div className="space-y-2">
-                        {dayExceptions.map((exc) => {
-                          const isAvailable = exc.type === 'AVAILABLE';
-                          return (
-                            <div
-                              key={exc.id}
-                              className={`p-2.5 rounded-lg text-xs cursor-pointer transition-colors ${
-                                isAvailable
-                                  ? 'bg-green-500/10 border border-green-500/20 hover:bg-green-500/15 active:bg-green-500/20'
-                                  : 'bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 active:bg-red-500/20'
-                              }`}
-                              onClick={() => openEditException(exc)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <Badge variant={isAvailable ? 'success' : 'danger'} size="sm">
-                                  {isAvailable ? 'Beschikbaar' : 'Niet beschikbaar'}
-                                </Badge>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); openEditException(exc); }}
-                                    className="p-1.5 text-gray-400 hover:text-brand-400 active:text-brand-300 rounded"
-                                  >
-                                    <PencilSquareIcon className="h-4 w-4" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteException(exc.id); }}
-                                    className="p-1.5 text-gray-400 hover:text-red-400 active:text-red-300 rounded"
-                                  >
-                                    <TrashIcon className="h-4 w-4" />
-                                  </button>
-                                </div>
+                    {items.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-2 bg-green-500/10 border border-green-500/20 rounded-lg text-xs cursor-pointer hover:bg-green-500/15 active:bg-green-500/20"
+                            onClick={() => openEditRecurring(item)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-green-400 font-medium">{item.startTime} – {item.endTime}</span>
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openEditRecurring(item); }}
+                                  className="p-1 text-gray-400 hover:text-brand-400 active:text-brand-300"
+                                >
+                                  <PencilSquareIcon className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteRecurring(item.id); }}
+                                  className="p-1 text-gray-400 hover:text-red-400 active:text-red-300"
+                                >
+                                  <TrashIcon className="h-3.5 w-3.5" />
+                                </button>
                               </div>
-                              {exc.startTime && exc.endTime ? (
-                                <p className={`mt-1 font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
-                                  {exc.startTime} – {exc.endTime}
-                                </p>
-                              ) : (
-                                <p className="text-red-400 mt-1 font-medium">Hele dag</p>
-                              )}
-                              {exc.note && <p className="text-gray-500 mt-0.5 italic">{exc.note}</p>}
                             </div>
-                          );
-                        })}
+                            <p className="text-gray-500 mt-0.5 text-[10px]">
+                              Vanaf {formatDate(item.validFrom, 'd MMM yyyy')}
+                              {item.validTo ? ` t/m ${formatDate(item.validTo, 'd MMM yyyy')}` : ''}
+                            </p>
+                          </div>
+                        ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-gray-600 italic">Geen uitzonderingen</p>
+                      <p className="text-[10px] text-gray-600 italic">—</p>
                     )}
-                  </Card>
+                  </div>
                 );
               })}
             </div>
-          )}
+          </div>
+        )}
+      </div>
 
-          {/* MONTH VIEW — Calendar grid */}
-          {exceptionView === 'month' && (
-            <div>
-              {/* Weekday headers */}
-              <div className="grid grid-cols-7 gap-1 mb-1">
-                {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((d) => (
-                  <div key={d} className="text-center text-[10px] sm:text-xs font-medium text-gray-500 py-1.5">
-                    {d}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar cells */}
-              <div className="grid grid-cols-7 gap-1">
-                {monthCalendarDays.map((day, idx) => {
-                  if (!day) {
-                    return <div key={`empty-${idx}`} className="min-h-[56px] sm:min-h-[80px]" />;
-                  }
-
-                  const dateStr = format(day, 'yyyy-MM-dd');
-                  const dayExceptions = exceptionsByDate[dateStr] || [];
-                  const isToday = isSameDay(day, new Date());
-                  const isPast = isBefore(day, new Date()) && !isToday;
-                  const weekend = isWeekend(day);
-
-                  const hasAvailable = dayExceptions.some((e) => e.type === 'AVAILABLE');
-                  const hasUnavailable = dayExceptions.some((e) => e.type === 'UNAVAILABLE');
-
-                  return (
-                    <div
-                      key={dateStr}
-                      onClick={() => dayExceptions.length === 1 ? openEditException(dayExceptions[0]) : openCreateException(day)}
-                      className={`min-h-[56px] sm:min-h-[80px] rounded-lg border p-1 sm:p-2 cursor-pointer transition-all active:scale-[0.97] select-none ${
-                        isToday
-                          ? 'border-brand-500/50 bg-brand-500/5'
-                          : isPast
-                            ? 'border-navy-700/50 bg-navy-900/30 opacity-50'
-                            : weekend
-                              ? 'border-navy-700/50 bg-navy-800/30'
-                              : 'border-navy-700 bg-navy-800/50 hover:border-navy-600 active:border-navy-500'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <span className={`text-xs sm:text-sm font-semibold leading-none ${
-                          isToday ? 'text-brand-400' : isPast ? 'text-gray-600' : weekend ? 'text-gray-500' : 'text-white'
-                        }`}>
-                          {format(day, 'd')}
-                        </span>
-                        {dayExceptions.length > 1 && (
-                          <span className="text-[9px] sm:text-[10px] bg-navy-600 text-gray-300 rounded-full px-1 leading-relaxed">
-                            {dayExceptions.length}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Status indicators */}
-                      {dayExceptions.length > 0 && (
-                        <div className="mt-1 space-y-0.5">
-                          {hasAvailable && (
-                            <div className="flex items-center gap-0.5 sm:gap-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                              <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">
-                                {dayExceptions.find((e) => e.type === 'AVAILABLE')?.startTime || ''}
-                                {dayExceptions.find((e) => e.type === 'AVAILABLE')?.endTime
-                                  ? `–${dayExceptions.find((e) => e.type === 'AVAILABLE')?.endTime}`
-                                  : ''}
-                              </span>
-                            </div>
-                          )}
-                          {hasUnavailable && (
-                            <div className="flex items-center gap-0.5 sm:gap-1">
-                              <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                              <span className="text-[9px] sm:text-xs text-red-400 truncate leading-tight">Vrij</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Legend */}
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-3 text-[10px] sm:text-xs text-gray-500">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-green-400" />
-                  Beschikbaar
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-red-400" />
-                  Niet beschikbaar
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-navy-600" />
-                  Niet ingevuld
-                </div>
-              </div>
+      {/* ==================== PLAN MODAL (beschikbaarheid inplannen) ==================== */}
+      <Modal
+        isOpen={planModal}
+        onClose={() => { setPlanModal(false); setEditingPlan(null); }}
+        title={editingPlan ? 'Beschikbaarheid bewerken' : 'Beschikbaarheid inplannen'}
+      >
+        <form onSubmit={handlePlanSubmit} noValidate className="space-y-4">
+          <Input
+            label="Datum"
+            type="date"
+            value={planForm.date}
+            onChange={(e) => setPlanForm({ ...planForm, date: e.target.value })}
+            required
+          />
+          <Select
+            label="Status"
+            value={planForm.type}
+            onChange={(e) => setPlanForm({ ...planForm, type: e.target.value as 'AVAILABLE' | 'UNAVAILABLE' })}
+            options={[
+              { value: 'AVAILABLE', label: 'Beschikbaar' },
+              { value: 'UNAVAILABLE', label: 'Niet beschikbaar (hele dag vrij)' },
+            ]}
+          />
+          {planForm.type === 'AVAILABLE' && (
+            <div className="grid grid-cols-2 gap-4">
+              <Select
+                label="Van"
+                value={planForm.startTime}
+                onChange={(e) => setPlanForm({ ...planForm, startTime: e.target.value })}
+                options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
+              />
+              <Select
+                label="Tot"
+                value={planForm.endTime}
+                onChange={(e) => setPlanForm({ ...planForm, endTime: e.target.value })}
+                options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
+              />
             </div>
           )}
-        </div>
-      )}
+          {planForm.type === 'UNAVAILABLE' && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-sm text-red-400">Je bent deze hele dag niet beschikbaar.</p>
+            </div>
+          )}
+          <Textarea
+            label="Opmerking (optioneel)"
+            value={planForm.note}
+            onChange={(e) => setPlanForm({ ...planForm, note: e.target.value })}
+            placeholder="Bijv. vakantie, afspraak..."
+          />
+          <div className="flex justify-between pt-4 border-t border-navy-700">
+            <div>
+              {editingPlan && (
+                <Button
+                  type="button"
+                  variant="danger"
+                  onClick={() => { handleDeletePlan(editingPlan.id); setPlanModal(false); setEditingPlan(null); }}
+                >
+                  Verwijderen
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <Button type="button" variant="ghost" onClick={() => { setPlanModal(false); setEditingPlan(null); }}>
+                Annuleren
+              </Button>
+              <Button type="submit" loading={saving}>
+                {editingPlan ? 'Bijwerken' : 'Opslaan'}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </Modal>
 
       {/* ==================== RECURRING MODAL ==================== */}
       <Modal
         isOpen={recurringModal}
         onClose={() => { setRecurringModal(false); setEditingRecurring(null); }}
-        title={editingRecurring ? 'Beschikbaarheid bewerken' : 'Beschikbaarheid toevoegen'}
+        title={editingRecurring ? 'Vaste tijd bewerken' : 'Vaste tijd toevoegen'}
       >
         <form onSubmit={handleRecurringSubmit} noValidate className="space-y-4">
           <Select
@@ -832,13 +903,13 @@ export default function AvailabilityPage() {
           />
           <div className="grid grid-cols-2 gap-4">
             <Select
-              label="Starttijd"
+              label="Van"
               value={recurringForm.startTime}
               onChange={(e) => setRecurringForm({ ...recurringForm, startTime: e.target.value })}
               options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
             />
             <Select
-              label="Eindtijd"
+              label="Tot"
               value={recurringForm.endTime}
               onChange={(e) => setRecurringForm({ ...recurringForm, endTime: e.target.value })}
               options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
@@ -863,7 +934,7 @@ export default function AvailabilityPage() {
             label="Opmerking (optioneel)"
             value={recurringForm.note}
             onChange={(e) => setRecurringForm({ ...recurringForm, note: e.target.value })}
-            placeholder="Bijv. alleen beschikbaar voor locatie X..."
+            placeholder="Bijv. alleen voor locatie X..."
           />
           <div className="flex justify-between pt-4 border-t border-navy-700">
             <div>
@@ -889,80 +960,6 @@ export default function AvailabilityPage() {
         </form>
       </Modal>
 
-      {/* ==================== EXCEPTION MODAL ==================== */}
-      <Modal
-        isOpen={exceptionModal}
-        onClose={() => { setExceptionModal(false); setEditingException(null); }}
-        title={editingException ? 'Uitzondering bewerken' : 'Uitzondering toevoegen'}
-      >
-        <form onSubmit={handleExceptionSubmit} noValidate className="space-y-4">
-          <Input
-            label="Datum"
-            type="date"
-            value={exceptionForm.date}
-            onChange={(e) => setExceptionForm({ ...exceptionForm, date: e.target.value })}
-            required
-          />
-          <Select
-            label="Type"
-            value={exceptionForm.type}
-            onChange={(e) => setExceptionForm({ ...exceptionForm, type: e.target.value as 'AVAILABLE' | 'UNAVAILABLE' })}
-            options={[
-              { value: 'AVAILABLE', label: 'Beschikbaar (met tijden)' },
-              { value: 'UNAVAILABLE', label: 'Niet beschikbaar (hele dag)' },
-            ]}
-          />
-          {exceptionForm.type === 'AVAILABLE' && (
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Starttijd"
-                value={exceptionForm.startTime}
-                onChange={(e) => setExceptionForm({ ...exceptionForm, startTime: e.target.value })}
-                options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
-              />
-              <Select
-                label="Eindtijd"
-                value={exceptionForm.endTime}
-                onChange={(e) => setExceptionForm({ ...exceptionForm, endTime: e.target.value })}
-                options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
-              />
-            </div>
-          )}
-          {exceptionForm.type === 'UNAVAILABLE' && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-              <p className="text-sm text-red-400">Hele dag niet beschikbaar — er worden geen tijden opgeslagen.</p>
-            </div>
-          )}
-          <Textarea
-            label="Opmerking (optioneel)"
-            value={exceptionForm.note}
-            onChange={(e) => setExceptionForm({ ...exceptionForm, note: e.target.value })}
-            placeholder="Bijv. vakantie, ziekenhuisafspraak..."
-          />
-          <div className="flex justify-between pt-4 border-t border-navy-700">
-            <div>
-              {editingException && (
-                <Button
-                  type="button"
-                  variant="danger"
-                  onClick={() => { handleDeleteException(editingException.id); setExceptionModal(false); setEditingException(null); }}
-                >
-                  Verwijderen
-                </Button>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <Button type="button" variant="ghost" onClick={() => { setExceptionModal(false); setEditingException(null); }}>
-                Annuleren
-              </Button>
-              <Button type="submit" loading={saving}>
-                {editingException ? 'Bijwerken' : 'Opslaan'}
-              </Button>
-            </div>
-          </div>
-        </form>
-      </Modal>
-
       {/* ==================== COPY WEEK MODAL ==================== */}
       <Modal
         isOpen={copyModal}
@@ -974,9 +971,9 @@ export default function AvailabilityPage() {
           <div className="bg-navy-800 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">Bron</p>
             <p className="text-sm text-white font-medium">
-              Week {format(exWeekStart, 'w')} — {format(exWeekStart, 'd MMM', { locale: nl })} t/m {format(exWeekEnd, 'd MMM yyyy', { locale: nl })}
+              Week {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM yyyy', { locale: nl })}
             </p>
-            <p className="text-xs text-gray-400 mt-1">{exceptions.length} uitzondering(en) in deze week</p>
+            <p className="text-xs text-gray-400 mt-1">{exceptions.length} dag(en) in deze week</p>
           </div>
 
           <Input
@@ -989,7 +986,7 @@ export default function AvailabilityPage() {
 
           <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
             <p className="text-xs text-yellow-400">
-              <strong>Let op:</strong> Datums waar al uitzonderingen bestaan worden overgeslagen.
+              <strong>Let op:</strong> Dagen die al ingevuld zijn worden overgeslagen.
             </p>
           </div>
 
@@ -1007,39 +1004,39 @@ export default function AvailabilityPage() {
       <Modal
         isOpen={fillMonthModal}
         onClose={() => setFillMonthModal(false)}
-        title={`Maand invullen — ${format(monthStart, 'MMMM yyyy', { locale: nl })}`}
+        title={`Hele maand invullen`}
         size="sm"
       >
         <div className="space-y-4">
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-3">
             <p className="text-sm text-brand-300">
-              Vul in één keer je beschikbaarheid in voor alle{' '}
-              {fillMonthForm.includeWeekends ? 'dagen' : 'werkdagen'} van{' '}
+              Vul in één keer je beschikbaarheid in voor{' '}
+              {fillMonthForm.includeWeekends ? 'alle dagen' : 'alle werkdagen'} van{' '}
               <strong className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</strong>.
             </p>
             <p className="text-xs text-gray-400 mt-1">Dagen die al ingevuld zijn worden overgeslagen.</p>
           </div>
 
           <Select
-            label="Type"
+            label="Status"
             value={fillMonthForm.type}
             onChange={(e) => setFillMonthForm({ ...fillMonthForm, type: e.target.value as 'AVAILABLE' | 'UNAVAILABLE' })}
             options={[
-              { value: 'AVAILABLE', label: 'Beschikbaar (met tijden)' },
-              { value: 'UNAVAILABLE', label: 'Niet beschikbaar (hele dag)' },
+              { value: 'AVAILABLE', label: 'Beschikbaar' },
+              { value: 'UNAVAILABLE', label: 'Niet beschikbaar (hele dag vrij)' },
             ]}
           />
 
           {fillMonthForm.type === 'AVAILABLE' && (
             <div className="grid grid-cols-2 gap-4">
               <Select
-                label="Starttijd"
+                label="Van"
                 value={fillMonthForm.startTime}
                 onChange={(e) => setFillMonthForm({ ...fillMonthForm, startTime: e.target.value })}
                 options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
               />
               <Select
-                label="Eindtijd"
+                label="Tot"
                 value={fillMonthForm.endTime}
                 onChange={(e) => setFillMonthForm({ ...fillMonthForm, endTime: e.target.value })}
                 options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
@@ -1061,14 +1058,14 @@ export default function AvailabilityPage() {
             label="Opmerking (optioneel)"
             value={fillMonthForm.note}
             onChange={(e) => setFillMonthForm({ ...fillMonthForm, note: e.target.value })}
-            placeholder="Bijv. standaard beschikbaar deze maand..."
+            placeholder="Bijv. standaard beschikbaar..."
           />
 
           <div className="flex justify-end gap-3 pt-4 border-t border-navy-700">
             <Button variant="ghost" onClick={() => setFillMonthModal(false)}>Annuleren</Button>
             <Button onClick={handleFillMonth} loading={filling}>
               <CalendarDaysIcon className="h-4 w-4 mr-1" />
-              Maand invullen
+              Invullen
             </Button>
           </div>
         </div>
