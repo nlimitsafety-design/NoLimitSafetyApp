@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
@@ -162,7 +162,7 @@ export default function AvailabilityPage() {
     return [...prefix, ...days];
   }, [monthStart, monthEnd]);
 
-  // Lookup: date string → exceptions
+  // Lookup: date string â†’ exceptions
   const exceptionsByDate = useMemo(() => {
     const map: Record<string, ExceptionItem[]> = {};
     for (const exc of exceptions) {
@@ -358,7 +358,7 @@ export default function AvailabilityPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || 'Fout bij kopiëren');
+        toast.error(data.error || 'Fout bij kopiÃ«ren');
         return;
       }
 
@@ -370,7 +370,7 @@ export default function AvailabilityPage() {
       mutateExceptions();
     } catch (err) {
       console.error('Copy week error:', err);
-      toast.error('Fout bij kopiëren');
+      toast.error('Fout bij kopiÃ«ren');
     } finally {
       setCopying(false);
     }
@@ -449,11 +449,11 @@ export default function AvailabilityPage() {
           {/* Top row: view toggle + actions */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             {/* View toggle */}
-            <div className="flex bg-navy-900 rounded-lg p-0.5">
+            <div className="flex bg-white rounded-lg p-0.5">
               <button
                 onClick={() => setCalendarView('month')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                  calendarView === 'month' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                  calendarView === 'month' ? 'bg-gray-200 text-gray-900' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 <CalendarDaysIcon className="h-3.5 w-3.5" />
@@ -462,7 +462,7 @@ export default function AvailabilityPage() {
               <button
                 onClick={() => setCalendarView('week')}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                  calendarView === 'week' ? 'bg-navy-700 text-white' : 'text-gray-500 hover:text-gray-300'
+                  calendarView === 'week' ? 'bg-gray-200 text-gray-900' : 'text-gray-500 hover:text-gray-600'
                 }`}
               >
                 <Squares2X2Icon className="h-3.5 w-3.5" />
@@ -510,15 +510,15 @@ export default function AvailabilityPage() {
                 ? setCurrentWeek(subWeeks(currentWeek, 1))
                 : setCurrentMonth(subMonths(currentMonth, 1))
               }
-              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors active:bg-gray-200"
             >
               <ChevronLeftIcon className="h-5 w-5" />
             </button>
-            <h2 className="text-sm sm:text-lg font-semibold text-white text-center min-w-0 flex-1 sm:flex-initial sm:min-w-[240px]">
+            <h2 className="text-sm sm:text-lg font-semibold text-gray-900 text-center min-w-0 flex-1 sm:flex-initial sm:min-w-[240px]">
               {calendarView === 'week' ? (
                 <>
-                  <span className="sm:hidden">Wk {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} - {format(weekEnd, 'd MMM', { locale: nl })}</span>
-                  <span className="hidden sm:inline">Week {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                  <span className="sm:hidden">Wk {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} - {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                  <span className="hidden sm:inline">Week {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM', { locale: nl })}</span>
                 </>
               ) : (
                 <span className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</span>
@@ -529,7 +529,7 @@ export default function AvailabilityPage() {
                 ? setCurrentWeek(addWeeks(currentWeek, 1))
                 : setCurrentMonth(addMonths(currentMonth, 1))
               }
-              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors active:bg-navy-700"
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors active:bg-gray-200"
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>
@@ -573,20 +573,20 @@ export default function AvailabilityPage() {
                     isToday
                       ? 'border-brand-500/50 bg-brand-500/5'
                       : isPast
-                        ? 'border-navy-700/50 bg-navy-900/30 opacity-50'
+                        ? 'border-gray-200 bg-gray-50 opacity-50'
                         : weekend
-                          ? 'border-navy-700/50 bg-navy-800/30'
-                          : 'border-navy-700 bg-navy-800/50 hover:border-navy-600 active:border-navy-500'
+                          ? 'border-gray-200 bg-gray-50'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300 active:border-navy-500'
                   }`}
                 >
                   <div className="flex items-start justify-between">
                     <span className={`text-xs sm:text-sm font-semibold leading-none ${
-                      isToday ? 'text-brand-400' : isPast ? 'text-gray-600' : weekend ? 'text-gray-500' : 'text-white'
+                      isToday ? 'text-brand-500' : isPast ? 'text-gray-600' : weekend ? 'text-gray-500' : 'text-gray-900'
                     }`}>
                       {format(day, 'd')}
                     </span>
                     {dayItems.length > 1 && (
-                      <span className="text-[9px] sm:text-[10px] bg-navy-600 text-gray-300 rounded-full px-1 leading-relaxed">
+                      <span className="text-[9px] sm:text-[10px] bg-gray-300 text-gray-600 rounded-full px-1 leading-relaxed">
                         {dayItems.length}
                       </span>
                     )}
@@ -600,7 +600,7 @@ export default function AvailabilityPage() {
                           <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">
                             {dayItems.find((e) => e.type === 'AVAILABLE')?.startTime || ''}
                             {dayItems.find((e) => e.type === 'AVAILABLE')?.endTime
-                              ? `–${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
+                              ? `â€“${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
                               : ''}
                           </span>
                         </div>
@@ -629,7 +629,7 @@ export default function AvailabilityPage() {
               Niet beschikbaar
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-navy-600" />
+              <div className="w-2 h-2 rounded-full bg-gray-300" />
               Niet ingevuld
             </div>
           </div>
@@ -650,16 +650,16 @@ export default function AvailabilityPage() {
               >
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-400' : 'text-gray-500'}`}>
+                    <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-500' : 'text-gray-500'}`}>
                       {format(day, 'EEE', { locale: nl })}
                     </p>
-                    <p className={`text-lg font-bold ${isToday ? 'text-brand-400' : 'text-white'}`}>
+                    <p className={`text-lg font-bold ${isToday ? 'text-brand-500' : 'text-gray-900'}`}>
                       {format(day, 'd')}
                     </p>
                   </div>
                   <button
                     onClick={() => openCreatePlan(day)}
-                    className="p-2 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
+                    className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
                     title="Beschikbaarheid toevoegen"
                   >
                     <PlusIcon className="h-4 w-4" />
@@ -687,7 +687,7 @@ export default function AvailabilityPage() {
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={(e) => { e.stopPropagation(); openEditPlan(item); }}
-                                className="p-1.5 text-gray-400 hover:text-brand-400 active:text-brand-300 rounded"
+                                className="p-1.5 text-gray-400 hover:text-brand-500 active:text-brand-300 rounded"
                               >
                                 <PencilSquareIcon className="h-4 w-4" />
                               </button>
@@ -701,7 +701,7 @@ export default function AvailabilityPage() {
                           </div>
                           {item.startTime && item.endTime ? (
                             <p className={`mt-1 font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
-                              {item.startTime} – {item.endTime}
+                              {item.startTime} â€“ {item.endTime}
                             </p>
                           ) : (
                             <p className="text-red-400 mt-1 font-medium">Hele dag</p>
@@ -721,15 +721,15 @@ export default function AvailabilityPage() {
       )}
 
       {/* ==================== VASTE TIJDEN (COLLAPSIBLE) ==================== */}
-      <div className="border border-navy-700 rounded-xl overflow-hidden">
+      <div className="border border-gray-200 rounded-xl overflow-hidden">
         <button
           onClick={() => setRecurringOpen(!recurringOpen)}
-          className="w-full flex items-center justify-between p-4 bg-navy-800/50 hover:bg-navy-800 transition-colors active:bg-navy-700"
+          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors active:bg-gray-200"
         >
           <div className="flex items-center gap-3">
-            <ClockIcon className="h-5 w-5 text-brand-400" />
+            <ClockIcon className="h-5 w-5 text-brand-500" />
             <div className="text-left">
-              <p className="text-sm font-semibold text-white">Vaste beschikbaarheid</p>
+              <p className="text-sm font-semibold text-gray-900">Vaste beschikbaarheid</p>
               <p className="text-xs text-gray-400">
                 {recurringCount > 0
                   ? `${recurringCount} vaste tijdslot${recurringCount !== 1 ? 'en' : ''} ingesteld`
@@ -745,7 +745,7 @@ export default function AvailabilityPage() {
         </button>
 
         {recurringOpen && (
-          <div className="p-4 border-t border-navy-700">
+          <div className="p-4 border-t border-gray-200">
             <div className="flex justify-end mb-4">
               <Button size="sm" onClick={() => openCreateRecurring()}>
                 <PlusIcon className="h-4 w-4 mr-1" />
@@ -757,15 +757,15 @@ export default function AvailabilityPage() {
               {WEEKDAYS.map((day) => {
                 const items = recurringByDay[day.value] || [];
                 return (
-                  <div key={day.value} className="bg-navy-800/30 border border-navy-700/50 rounded-lg p-3 min-h-[80px]">
+                  <div key={day.value} className="bg-gray-50 border border-gray-200 rounded-lg p-3 min-h-[80px]">
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <p className="text-[10px] font-medium uppercase tracking-wider text-gray-500">{day.short}</p>
-                        <p className="text-xs font-bold text-white">{day.label}</p>
+                        <p className="text-xs font-bold text-gray-900">{day.label}</p>
                       </div>
                       <button
                         onClick={() => openCreateRecurring(day.value)}
-                        className="p-1.5 rounded-lg text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
+                        className="p-1.5 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-500/10 transition-colors active:bg-brand-500/20"
                       >
                         <PlusIcon className="h-3.5 w-3.5" />
                       </button>
@@ -780,11 +780,11 @@ export default function AvailabilityPage() {
                             onClick={() => openEditRecurring(item)}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-green-400 font-medium">{item.startTime} – {item.endTime}</span>
+                              <span className="text-green-400 font-medium">{item.startTime} â€“ {item.endTime}</span>
                               <div className="flex items-center gap-0.5">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); openEditRecurring(item); }}
-                                  className="p-1 text-gray-400 hover:text-brand-400 active:text-brand-300"
+                                  className="p-1 text-gray-400 hover:text-brand-500 active:text-brand-300"
                                 >
                                   <PencilSquareIcon className="h-3.5 w-3.5" />
                                 </button>
@@ -804,7 +804,7 @@ export default function AvailabilityPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[10px] text-gray-600 italic">—</p>
+                      <p className="text-[10px] text-gray-600 italic">â€”</p>
                     )}
                   </div>
                 );
@@ -864,7 +864,7 @@ export default function AvailabilityPage() {
             onChange={(e) => setPlanForm({ ...planForm, note: e.target.value })}
             placeholder="Bijv. vakantie, afspraak..."
           />
-          <div className="flex justify-between pt-4 border-t border-navy-700">
+          <div className="flex justify-between pt-4 border-t border-gray-200">
             <div>
               {editingPlan && (
                 <Button
@@ -936,7 +936,7 @@ export default function AvailabilityPage() {
             onChange={(e) => setRecurringForm({ ...recurringForm, note: e.target.value })}
             placeholder="Bijv. alleen voor locatie X..."
           />
-          <div className="flex justify-between pt-4 border-t border-navy-700">
+          <div className="flex justify-between pt-4 border-t border-gray-200">
             <div>
               {editingRecurring && (
                 <Button
@@ -968,10 +968,10 @@ export default function AvailabilityPage() {
         size="sm"
       >
         <div className="space-y-4">
-          <div className="bg-navy-800 rounded-lg p-3">
+          <div className="bg-gray-100 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">Bron</p>
-            <p className="text-sm text-white font-medium">
-              Week {format(weekStart, 'w')} — {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM yyyy', { locale: nl })}
+            <p className="text-sm text-gray-900 font-medium">
+              Week {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM yyyy', { locale: nl })}
             </p>
             <p className="text-xs text-gray-400 mt-1">{exceptions.length} dag(en) in deze week</p>
           </div>
@@ -990,11 +990,11 @@ export default function AvailabilityPage() {
             </p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-navy-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <Button variant="ghost" onClick={() => setCopyModal(false)}>Annuleren</Button>
             <Button onClick={handleCopyWeek} loading={copying} disabled={exceptions.length === 0}>
               <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
-              Kopiëren
+              KopiÃ«ren
             </Button>
           </div>
         </div>
@@ -1010,7 +1010,7 @@ export default function AvailabilityPage() {
         <div className="space-y-4">
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-3">
             <p className="text-sm text-brand-300">
-              Vul in één keer je beschikbaarheid in voor{' '}
+              Vul in Ã©Ã©n keer je beschikbaarheid in voor{' '}
               {fillMonthForm.includeWeekends ? 'alle dagen' : 'alle werkdagen'} van{' '}
               <strong className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</strong>.
             </p>
@@ -1049,9 +1049,9 @@ export default function AvailabilityPage() {
               type="checkbox"
               checked={fillMonthForm.includeWeekends}
               onChange={(e) => setFillMonthForm({ ...fillMonthForm, includeWeekends: e.target.checked })}
-              className="w-4 h-4 rounded border-navy-600 bg-navy-800 text-brand-500 focus:ring-brand-500"
+              className="w-4 h-4 rounded border-gray-300 bg-gray-100 text-brand-500 focus:ring-brand-500"
             />
-            <span className="text-sm text-gray-300">Inclusief weekenden</span>
+            <span className="text-sm text-gray-600">Inclusief weekenden</span>
           </label>
 
           <Textarea
@@ -1061,7 +1061,7 @@ export default function AvailabilityPage() {
             placeholder="Bijv. standaard beschikbaar..."
           />
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-navy-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <Button variant="ghost" onClick={() => setFillMonthModal(false)}>Annuleren</Button>
             <Button onClick={handleFillMonth} loading={filling}>
               <CalendarDaysIcon className="h-4 w-4 mr-1" />

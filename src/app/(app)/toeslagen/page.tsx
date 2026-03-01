@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -256,14 +256,14 @@ export default function ToeslagenPage() {
       </div>
 
       {/* Info card */}
-      <Card className="mb-4 border border-navy-700">
+      <Card className="mb-4 border border-gray-200">
         <div className="flex gap-3">
-          <CurrencyEuroIcon className="h-5 w-5 text-brand-400 flex-shrink-0 mt-0.5" />
+          <CurrencyEuroIcon className="h-5 w-5 text-brand-500 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-gray-400">
-            <p className="text-gray-300 font-medium mb-1">Hoe werken toeslagen?</p>
+            <p className="text-gray-600 font-medium mb-1">Hoe werken toeslagen?</p>
             <p>Toeslagen worden automatisch berekend in rapportages. Een percentage van 130% betekent dat het uurtarief met 30% verhoogd wordt voor uren die onder deze toeslag vallen.</p>
-            <p className="mt-1"><strong className="text-gray-300">Tijdgebaseerd:</strong> Geldt voor uren binnen een bepaald tijdvenster (bijv. 20:00 - 06:00 voor nacht).</p>
-            <p><strong className="text-gray-300">Daggebaseerd:</strong> Geldt voor alle uren op bepaalde dagen (bijv. zaterdag, zondag).</p>
+            <p className="mt-1"><strong className="text-gray-600">Tijdgebaseerd:</strong> Geldt voor uren binnen een bepaald tijdvenster (bijv. 20:00 - 06:00 voor nacht).</p>
+            <p><strong className="text-gray-600">Daggebaseerd:</strong> Geldt voor alle uren op bepaalde dagen (bijv. zaterdag, zondag).</p>
             <p className="mt-1 text-yellow-500/80">Let op: Toeslagen kunnen stapelen. Een nachtdienst op zondag krijgt zowel de nacht- als zondagtoeslag.</p>
           </div>
         </div>
@@ -316,7 +316,7 @@ export default function ToeslagenPage() {
               </div>
             ) : (
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Dagen</label>
+                <label className="block text-sm font-medium text-gray-600 mb-2">Dagen</label>
                 <div className="flex flex-wrap gap-2">
                   {DAY_OPTIONS.map((d) => (
                     <button
@@ -325,8 +325,8 @@ export default function ToeslagenPage() {
                       onClick={() => toggleDay(d.value, newDays, setNewDays)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         newDays.includes(d.value)
-                          ? 'bg-brand-500/20 text-brand-400 border border-brand-500/40'
-                          : 'bg-navy-800 text-gray-400 border border-navy-700 hover:border-navy-600'
+                          ? 'bg-brand-500/20 text-brand-500 border border-brand-500/40'
+                          : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       {d.label}
@@ -335,13 +335,13 @@ export default function ToeslagenPage() {
                 </div>
               </div>
             )}
-            <div className="bg-navy-800/50 rounded-lg p-3">
+            <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-400">
-                Voorbeeld: Bij een uurtarief van €15,00 en percentage van {newPercentage}% wordt het tarief{' '}
-                <span className="text-brand-400 font-semibold">
-                  €{(15 * newPercentage / 100).toFixed(2)}
+                Voorbeeld: Bij een uurtarief van â‚¬15,00 en percentage van {newPercentage}% wordt het tarief{' '}
+                <span className="text-brand-500 font-semibold">
+                  â‚¬{(15 * newPercentage / 100).toFixed(2)}
                 </span>{' '}
-                ({newPercentage - 100}% extra = €{(15 * (newPercentage - 100) / 100).toFixed(2)} toeslag per uur)
+                ({newPercentage - 100}% extra = â‚¬{(15 * (newPercentage - 100) / 100).toFixed(2)} toeslag per uur)
               </p>
             </div>
             <div className="flex gap-2 pt-2">
@@ -372,7 +372,7 @@ export default function ToeslagenPage() {
         ) : (
           <div className="space-y-2">
             {activeToeslagen.map((t: Toeslag) => (
-              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-navy-800/50 hover:bg-navy-800 transition-colors">
+              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                 {editingId === t.id ? (
                   /* Edit mode */
                   <div className="flex-1 space-y-3">
@@ -415,7 +415,7 @@ export default function ToeslagenPage() {
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Dagen</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-2">Dagen</label>
                         <div className="flex flex-wrap gap-2">
                           {DAY_OPTIONS.map((d) => (
                             <button
@@ -424,8 +424,8 @@ export default function ToeslagenPage() {
                               onClick={() => toggleDay(d.value, editDays, setEditDays)}
                               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                 editDays.includes(d.value)
-                                  ? 'bg-brand-500/20 text-brand-400 border border-brand-500/40'
-                                  : 'bg-navy-800 text-gray-400 border border-navy-700 hover:border-navy-600'
+                                  ? 'bg-brand-500/20 text-brand-500 border border-brand-500/40'
+                                  : 'bg-gray-100 text-gray-400 border border-gray-200 hover:border-gray-300'
                               }`}
                             >
                               {d.label}
@@ -460,7 +460,7 @@ export default function ToeslagenPage() {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-white">{t.name}</p>
+                          <p className="font-medium text-gray-900">{t.name}</p>
                           <Badge variant={t.type === 'TIME_BASED' ? 'info' : 'warning'}>
                             {t.percentage}%
                           </Badge>
@@ -471,21 +471,21 @@ export default function ToeslagenPage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => startEdit(t)}
-                        className="p-2 text-gray-500 hover:text-white transition-colors rounded-lg hover:bg-navy-700"
+                        className="p-2 text-gray-500 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-200"
                         title="Bewerken"
                       >
                         <PencilSquareIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleToggleActive(t)}
-                        className="p-2 text-gray-500 hover:text-yellow-400 transition-colors rounded-lg hover:bg-navy-700"
+                        className="p-2 text-gray-500 hover:text-yellow-400 transition-colors rounded-lg hover:bg-gray-200"
                         title="Deactiveren"
                       >
                         <XMarkIcon className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(t.id, t.name)}
-                        className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-navy-700"
+                        className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-200"
                         title="Verwijderen"
                       >
                         <TrashIcon className="h-4 w-4" />
@@ -507,7 +507,7 @@ export default function ToeslagenPage() {
           </CardHeader>
           <div className="space-y-2">
             {inactiveToeslagen.map((t: Toeslag) => (
-              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-navy-800/30 opacity-60 hover:opacity-100 transition-all">
+              <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 opacity-60 hover:opacity-100 transition-all">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-gray-800/50 flex-shrink-0">
                     {t.type === 'TIME_BASED' ? (
@@ -527,14 +527,14 @@ export default function ToeslagenPage() {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleToggleActive(t)}
-                    className="p-2 text-gray-500 hover:text-green-400 transition-colors rounded-lg hover:bg-navy-700"
+                    className="p-2 text-gray-500 hover:text-green-400 transition-colors rounded-lg hover:bg-gray-200"
                     title="Activeren"
                   >
                     <CheckIcon className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(t.id, t.name)}
-                    className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-navy-700"
+                    className="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-lg hover:bg-gray-200"
                     title="Verwijderen"
                   >
                     <TrashIcon className="h-4 w-4" />

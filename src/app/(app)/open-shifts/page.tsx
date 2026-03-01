@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -104,7 +104,7 @@ export default function OpenShiftsPage() {
               <Card key={shift.id} className="flex flex-col">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-sm font-semibold text-white">
+                    <p className="text-sm font-semibold text-gray-900">
                       {formatDate(shift.date, 'EEEE d MMMM')}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
@@ -115,14 +115,14 @@ export default function OpenShiftsPage() {
                 </div>
 
                 <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <ClockIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
                     <span>
-                      {shift.startTime} – {shift.endTime}{' '}
+                      {shift.startTime} â€“ {shift.endTime}{' '}
                       <span className="text-gray-500">({hours.toFixed(1)}u)</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
                     <MapPinIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
                     <span>{shift.location}</span>
                   </div>
@@ -131,7 +131,7 @@ export default function OpenShiftsPage() {
                   )}
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-navy-700">
+                <div className="mt-4 pt-3 border-t border-gray-200">
                   {hasRequested ? (
                     <div className="flex items-center gap-2 text-sm">
                       {isPending ? (
@@ -172,7 +172,7 @@ export default function OpenShiftsPage() {
       {/* My requests section */}
       {myRequests.length > 0 && (
         <div className="mt-8">
-          <h2 className="text-lg font-semibold text-white mb-4">Mijn Aanvragen</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Mijn Aanvragen</h2>
 
           {/* Pending */}
           {pendingRequests.length > 0 && (
@@ -187,8 +187,8 @@ export default function OpenShiftsPage() {
                       <div className="flex items-center gap-3">
                         <ArrowPathIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                         <div>
-                          <p className="text-sm text-white font-medium">
-                            {formatDate(req.shift.date, 'EEE d MMM')} — {req.shift.startTime}-{req.shift.endTime}
+                          <p className="text-sm text-gray-900 font-medium">
+                            {formatDate(req.shift.date, 'EEE d MMM')} â€” {req.shift.startTime}-{req.shift.endTime}
                           </p>
                           <p className="text-xs text-gray-500">{req.shift.location}</p>
                         </div>
@@ -218,8 +218,8 @@ export default function OpenShiftsPage() {
                           <XCircleIcon className="h-5 w-5 text-red-400 flex-shrink-0" />
                         )}
                         <div>
-                          <p className="text-sm text-white font-medium">
-                            {formatDate(req.shift.date, 'EEE d MMM')} — {req.shift.startTime}-{req.shift.endTime}
+                          <p className="text-sm text-gray-900 font-medium">
+                            {formatDate(req.shift.date, 'EEE d MMM')} â€” {req.shift.startTime}-{req.shift.endTime}
                           </p>
                           <p className="text-xs text-gray-500">{req.shift.location}</p>
                         </div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
@@ -100,7 +100,7 @@ export default function PlanningPage() {
     return { start: format(startOfMonth(currentDate), 'yyyy-MM-dd'), end: format(endOfMonth(currentDate), 'yyyy-MM-dd') };
   }, [currentDate, view]);
 
-  // SWR — cached & deduplicated
+  // SWR â€” cached & deduplicated
   const { data: rawShifts = [], isLoading: loading, mutate: mutateShifts } = useShifts(start, end);
   const shifts = rawShifts as Shift[];
   const { data: allEmployees = [] } = useEmployees();
@@ -235,12 +235,12 @@ export default function PlanningPage() {
   function toggleEmployee(empId: string) {
     const alreadySelected = form.employeeIds.includes(empId);
     if (alreadySelected) {
-      // Deselect — always allowed
+      // Deselect â€” always allowed
       setForm(prev => ({ ...prev, employeeIds: prev.employeeIds.filter(id => id !== empId) }));
       return;
     }
 
-    // Selecting — check status
+    // Selecting â€” check status
     const empStatus = employeeStatuses.find(s => s.employeeId === empId);
     if (empStatus && empStatus.status !== 'INGEVULD') {
       // Show confirmation modal
@@ -259,7 +259,7 @@ export default function PlanningPage() {
   function confirmOverrideSelection() {
     if (!confirmModal) return;
     setForm(prev => ({ ...prev, employeeIds: [...prev.employeeIds, confirmModal.empId] }));
-    toast(`Override: ${confirmModal.empName} toegevoegd (${confirmModal.status === 'NIET_INGEVULD' ? 'niet ingevuld' : 'niet beschikbaar'})`, { icon: '⚠️' });
+    toast(`Override: ${confirmModal.empName} toegevoegd (${confirmModal.status === 'NIET_INGEVULD' ? 'niet ingevuld' : 'niet beschikbaar'})`, { icon: 'âš ï¸' });
     setConfirmModal(null);
   }
 
@@ -292,7 +292,7 @@ export default function PlanningPage() {
         <span className="inline-flex items-center gap-1">
           <Badge variant="info" className="!bg-purple-500/20 !text-purple-400 !border-purple-500/30">Open</Badge>
           {requestCount !== undefined && requestCount > 0 && (
-            <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-purple-500 text-white rounded-full">{requestCount}</span>
+            <span className="inline-flex items-center justify-center w-5 h-5 text-[10px] font-bold bg-purple-500 text-gray-900 rounded-full">{requestCount}</span>
           )}
         </span>
       );
@@ -353,11 +353,11 @@ export default function PlanningPage() {
           </div>
           <div className="flex items-center gap-2">
             {/* View toggle */}
-            <div className="flex bg-navy-800 rounded-lg p-0.5">
+            <div className="flex bg-gray-100 rounded-lg p-0.5">
               <button
                 onClick={() => setView('week')}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  view === 'week' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-white'
+                  view === 'week' ? 'bg-brand-500 text-gray-900' : 'text-gray-400 hover:text-gray-900'
                 }`}
               >
                 <CalendarIcon className="h-4 w-4 inline mr-1" />
@@ -366,7 +366,7 @@ export default function PlanningPage() {
               <button
                 onClick={() => setView('month')}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  view === 'month' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:text-white'
+                  view === 'month' ? 'bg-brand-500 text-gray-900' : 'text-gray-400 hover:text-gray-900'
                 }`}
               >
                 <ListBulletIcon className="h-4 w-4 inline mr-1" />
@@ -391,13 +391,13 @@ export default function PlanningPage() {
                   ? setCurrentDate(subWeeks(currentDate, 1))
                   : setCurrentDate(subMonths(currentDate, 1))
               }
-              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
             >
               <ChevronLeftIcon className="h-5 w-5" />
             </button>
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold text-gray-900">
               {view === 'week'
-                ? `Week ${format(weekDays[0], 'w')} — ${format(weekDays[0], 'd MMM', { locale: nl })} t/m ${format(weekDays[6], 'd MMM yyyy', { locale: nl })}`
+                ? `Week ${format(weekDays[0], 'w')} â€” ${format(weekDays[0], 'd MMM', { locale: nl })} t/m ${format(weekDays[6], 'd MMM yyyy', { locale: nl })}`
                 : format(currentDate, 'MMMM yyyy', { locale: nl })}
             </h2>
             <button
@@ -406,7 +406,7 @@ export default function PlanningPage() {
                   ? setCurrentDate(addWeeks(currentDate, 1))
                   : setCurrentDate(addMonths(currentDate, 1))
               }
-              className="p-2 rounded-lg hover:bg-navy-800 text-gray-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-900 transition-colors"
             >
               <ChevronRightIcon className="h-5 w-5" />
             </button>
@@ -427,17 +427,17 @@ export default function PlanningPage() {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-400' : 'text-gray-500'}`}>
+                      <p className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-brand-500' : 'text-gray-500'}`}>
                         {format(day, 'EEE', { locale: nl })}
                       </p>
-                      <p className={`text-lg font-bold ${isToday ? 'text-brand-400' : 'text-white'}`}>
+                      <p className={`text-lg font-bold ${isToday ? 'text-brand-500' : 'text-gray-900'}`}>
                         {format(day, 'd')}
                       </p>
                     </div>
                     {isAdmin && (
                       <button
                         onClick={() => openCreateShift(format(day, 'yyyy-MM-dd'))}
-                        className="p-1 rounded text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
+                        className="p-1 rounded text-gray-500 hover:text-brand-500 hover:bg-brand-500/10 transition-colors"
                       >
                         <PlusIcon className="h-4 w-4" />
                       </button>
@@ -460,12 +460,12 @@ export default function PlanningPage() {
                               : shift.status === 'AFGEROND'
                               ? 'border-l-blue-500 bg-blue-500/5'
                               : 'border-l-yellow-500 bg-yellow-500/5'
-                          } cursor-pointer hover:bg-navy-800/50 transition-colors`}
+                          } cursor-pointer hover:bg-gray-50 transition-colors`}
                         >
                           <div className="flex items-center justify-between gap-1">
-                            <p className="font-medium text-white truncate">{shift.location}</p>
+                            <p className="font-medium text-gray-900 truncate">{shift.location}</p>
                             {shift.status === 'OPEN' && shift._count && shift._count.shiftRequests > 0 && (
-                              <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-purple-500 text-white rounded-full">{shift._count.shiftRequests}</span>
+                              <span className="flex-shrink-0 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold bg-purple-500 text-gray-900 rounded-full">{shift._count.shiftRequests}</span>
                             )}
                           </div>
                           <p className="text-gray-400 mt-0.5">{shift.startTime} - {shift.endTime}</p>
@@ -496,7 +496,7 @@ export default function PlanningPage() {
         {/* Month View */}
         {view === 'month' && (
           <Card padding={false}>
-            <div className="grid grid-cols-7 border-b border-navy-700">
+            <div className="grid grid-cols-7 border-b border-gray-200">
               {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((d) => (
                 <div key={d} className="p-2 text-center text-xs font-medium text-gray-500 uppercase">
                   {d}
@@ -506,7 +506,7 @@ export default function PlanningPage() {
             <div className="grid grid-cols-7">
               {/* Padding for days before month start */}
               {Array.from({ length: paddingDays }).map((_, i) => (
-                <div key={`pad-${i}`} className="p-2 min-h-[80px] border-b border-r border-navy-800/50" />
+                <div key={`pad-${i}`} className="p-2 min-h-[80px] border-b border-r border-gray-100" />
               ))}
               {monthDays.map((day) => {
                 const dayShifts = getVisibleShiftsForDay(day);
@@ -514,11 +514,11 @@ export default function PlanningPage() {
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`p-2 min-h-[80px] border-b border-r border-navy-800/50 ${
+                    className={`p-2 min-h-[80px] border-b border-r border-gray-100 ${
                       isToday ? 'bg-brand-500/5' : ''
                     }`}
                   >
-                    <p className={`text-sm font-medium ${isToday ? 'text-brand-400' : 'text-gray-400'}`}>
+                    <p className={`text-sm font-medium ${isToday ? 'text-brand-500' : 'text-gray-400'}`}>
                       {format(day, 'd')}
                     </p>
                     <div className="mt-1 space-y-1">
@@ -563,19 +563,19 @@ export default function PlanningPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Datum</p>
-                  <p className="text-sm text-white">{formatDate(selectedShift.date, 'EEEE d MMMM yyyy')}</p>
+                  <p className="text-sm text-gray-900">{formatDate(selectedShift.date, 'EEEE d MMMM yyyy')}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Locatie</p>
-                  <p className="text-sm text-white">{selectedShift.location}</p>
+                  <p className="text-sm text-gray-900">{selectedShift.location}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Tijd</p>
-                  <p className="text-sm text-white">{selectedShift.startTime} - {selectedShift.endTime}</p>
+                  <p className="text-sm text-gray-900">{selectedShift.startTime} - {selectedShift.endTime}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Uren</p>
-                  <p className="text-sm text-white">{calculateHours(selectedShift.startTime, selectedShift.endTime)} uur</p>
+                  <p className="text-sm text-gray-900">{calculateHours(selectedShift.startTime, selectedShift.endTime)} uur</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Type</p>
@@ -589,7 +589,7 @@ export default function PlanningPage() {
               {selectedShift.note && (
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Opmerkingen</p>
-                  <p className="text-sm text-gray-300">{selectedShift.note}</p>
+                  <p className="text-sm text-gray-600">{selectedShift.note}</p>
                 </div>
               )}
               {selectedShift.shiftUsers.length > 0 && (
@@ -597,14 +597,14 @@ export default function PlanningPage() {
                   <p className="text-xs text-gray-500 mb-1">Collega&apos;s op deze dienst</p>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {selectedShift.shiftUsers.map((su) => (
-                      <span key={su.id} className="px-2 py-1 bg-navy-800 rounded text-xs text-gray-300">
+                      <span key={su.id} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
                         {su.user.name}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
-              <div className="flex justify-end pt-4 border-t border-navy-700">
+              <div className="flex justify-end pt-4 border-t border-gray-200">
                 <Button variant="ghost" onClick={() => setDetailModalOpen(false)}>Sluiten</Button>
               </div>
             </div>
@@ -690,14 +690,14 @@ export default function PlanningPage() {
               ) : (
               /* Employee selection with 3-status system */
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium text-gray-600 mb-2">
                   Medewerkers toewijzen
                 </label>
 
                 {/* Status filter tabs */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {([
-                    { key: 'ALL' as StatusFilter, label: 'Alle', color: 'bg-navy-700 text-gray-300' },
+                    { key: 'ALL' as StatusFilter, label: 'Alle', color: 'bg-gray-200 text-gray-600' },
                     { key: 'INGEVULD' as StatusFilter, label: 'Ingevuld', color: 'bg-green-500/20 text-green-400' },
                     { key: 'NIET_INGEVULD' as StatusFilter, label: 'Niet ingevuld', color: 'bg-gray-500/20 text-gray-400' },
                     { key: 'NIET_BESCHIKBAAR' as StatusFilter, label: 'Niet beschikbaar', color: 'bg-red-500/20 text-red-400' },
@@ -709,7 +709,7 @@ export default function PlanningPage() {
                       className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
                         statusFilter === f.key
                           ? `${f.color} ring-1 ring-current`
-                          : 'bg-navy-800 text-gray-500 hover:text-gray-300'
+                          : 'bg-gray-100 text-gray-500 hover:text-gray-600'
                       }`}
                     >
                       {f.label} ({statusCounts[f.key]})
@@ -725,7 +725,7 @@ export default function PlanningPage() {
                     placeholder="Zoek medewerker..."
                     value={employeeSearch}
                     onChange={(e) => setEmployeeSearch(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-navy-800 border border-navy-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="w-full pl-9 pr-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
 
@@ -733,7 +733,7 @@ export default function PlanningPage() {
                 {loadingStatuses ? (
                   <div className="p-4 text-center text-gray-500 text-sm">Statussen laden...</div>
                 ) : (
-                  <div className="space-y-1.5 max-h-64 overflow-y-auto p-1 bg-navy-800/30 rounded-lg border border-navy-700">
+                  <div className="space-y-1.5 max-h-64 overflow-y-auto p-1 bg-gray-50 rounded-lg border border-gray-200">
                     {filteredEmployeeStatuses.length === 0 ? (
                       <p className="text-sm text-gray-500 text-center py-4">Geen medewerkers gevonden</p>
                     ) : (
@@ -753,7 +753,7 @@ export default function PlanningPage() {
                             className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer transition-all ${
                               isSelected
                                 ? `${statusConfig.bg} border ${statusConfig.border} ring-1 ring-current/20`
-                                : 'hover:bg-navy-800 border border-transparent'
+                                : 'hover:bg-gray-100 border border-transparent'
                             }`}
                             onClick={() => toggleEmployee(emp.employeeId)}
                           >
@@ -762,16 +762,16 @@ export default function PlanningPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => {}}
-                              className="w-4 h-4 rounded border-navy-600 bg-navy-800 text-brand-500 focus:ring-brand-500 flex-shrink-0"
+                              className="w-4 h-4 rounded border-gray-300 bg-gray-100 text-brand-500 focus:ring-brand-500 flex-shrink-0"
                             />
 
                             {/* Status icon */}
                             <StatusIcon className={`h-5 w-5 flex-shrink-0 ${statusConfig.color}`} />
 
-                            {/* Employee info — responsive: card on mobile, row on desktop */}
+                            {/* Employee info â€” responsive: card on mobile, row on desktop */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2">
-                                <p className="text-sm font-medium text-white truncate">{emp.employeeName}</p>
+                                <p className="text-sm font-medium text-gray-900 truncate">{emp.employeeName}</p>
                                 <Badge variant={statusConfig.badge} size="sm">{statusConfig.label}</Badge>
                               </div>
                               <p className="text-xs text-gray-500 truncate mt-0.5">{emp.reason}</p>
@@ -787,7 +787,7 @@ export default function PlanningPage() {
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-gray-500">
                     {form.employeeIds.length === 0
-                      ? 'Selecteer minimaal één medewerker'
+                      ? 'Selecteer minimaal Ã©Ã©n medewerker'
                       : `${form.employeeIds.length} medewerker${form.employeeIds.length !== 1 ? 's' : ''} geselecteerd`}
                   </p>
                   {form.employeeIds.length > 0 && (
@@ -803,7 +803,7 @@ export default function PlanningPage() {
               </div>
               )}
 
-              <div className="flex justify-between pt-4 border-t border-navy-700">
+              <div className="flex justify-between pt-4 border-t border-gray-200">
                 <div>
                   {selectedShift && (
                     <Button type="button" variant="danger" onClick={handleDelete}>
@@ -840,9 +840,9 @@ export default function PlanningPage() {
                   ) : (
                     <XCircleIcon className="h-5 w-5 text-red-400" />
                   )}
-                  <span className="font-medium text-white">{confirmModal.empName}</span>
+                  <span className="font-medium text-gray-900">{confirmModal.empName}</span>
                 </div>
-                <p className="text-sm text-gray-300">
+                <p className="text-sm text-gray-600">
                   Status: <span className={confirmModal.status === 'NIET_INGEVULD' ? 'text-gray-400' : 'text-red-400'}>
                     {confirmModal.status === 'NIET_INGEVULD' ? 'Niet ingevuld' : 'Niet beschikbaar'}
                   </span>
@@ -853,7 +853,7 @@ export default function PlanningPage() {
                 <ExclamationTriangleIcon className="h-4 w-4 inline mr-1" />
                 Weet je zeker? Dit kan problemen geven.
               </p>
-              <div className="flex justify-end gap-3 pt-2 border-t border-navy-700">
+              <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
                 <Button type="button" variant="ghost" onClick={() => setConfirmModal(null)}>
                   Annuleren
                 </Button>

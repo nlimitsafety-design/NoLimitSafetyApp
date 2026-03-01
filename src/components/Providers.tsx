@@ -14,12 +14,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <Toaster
         position="top-right"
         toastOptions={{
-          className: '!bg-navy-800 !text-white !border !border-navy-700',
+          className: '!bg-white !text-gray-900 !border !border-gray-200 !shadow-lg',
           duration: 4000,
           style: {
-            background: '#1E293B',
-            color: '#fff',
-            border: '1px solid #334155',
+            background: '#FFFFFF',
+            color: '#111827',
+            border: '1px solid #E5E7EB',
           },
         }}
       />

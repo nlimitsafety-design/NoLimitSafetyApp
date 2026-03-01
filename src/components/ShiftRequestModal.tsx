@@ -72,9 +72,9 @@ export default function ShiftRequestModal({ isOpen, onClose, shift, onAction }: 
       size="lg"
     >
       {/* Shift info summary */}
-      <div className="bg-navy-800/50 rounded-lg p-4 mb-5 border border-navy-700">
+      <div className="bg-gray-50 rounded-lg p-4 mb-5 border border-gray-200">
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-white font-semibold">
+          <span className="text-gray-900 font-semibold">
             {formatDate(shift.date, 'EEEE d MMMM yyyy')}
           </span>
           <Badge variant="orange">{typeLabel}</Badge>
@@ -110,19 +110,19 @@ export default function ShiftRequestModal({ isOpen, onClose, shift, onAction }: 
               key={req.id}
               className={`rounded-lg border p-4 ${
                 req.status === 'PENDING'
-                  ? 'border-navy-700 bg-navy-800/30'
+                  ? 'border-gray-200 bg-gray-50'
                   : req.status === 'APPROVED'
-                  ? 'border-green-500/20 bg-green-500/5'
-                  : 'border-red-500/20 bg-red-500/5 opacity-60'
+                  ? 'border-green-500/20 bg-green-50'
+                  : 'border-red-500/20 bg-red-50 opacity-60'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 bg-navy-700 rounded-full flex items-center justify-center text-sm font-medium text-brand-400 flex-shrink-0">
+                  <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-brand-500 flex-shrink-0">
                     {req.user.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{req.user.name}</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{req.user.name}</p>
                     <p className="text-xs text-gray-500 truncate">{req.user.email}</p>
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export default function ShiftRequestModal({ isOpen, onClose, shift, onAction }: 
 
               {/* Actions */}
               {req.status === 'PENDING' && (
-                <div className="flex gap-2 mt-3 pt-3 border-t border-navy-700/50">
+                <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
                   <Button
                     size="sm"
                     onClick={() => handleAction(req.id, 'APPROVED')}
@@ -203,7 +203,7 @@ export default function ShiftRequestModal({ isOpen, onClose, shift, onAction }: 
         </div>
       )}
 
-      <div className="flex justify-end pt-4 mt-4 border-t border-navy-700">
+      <div className="flex justify-end pt-4 mt-4 border-t border-gray-200">
         <Button variant="ghost" onClick={onClose}>
           Sluiten
         </Button>

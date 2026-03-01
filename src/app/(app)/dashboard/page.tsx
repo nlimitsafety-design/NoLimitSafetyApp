@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useSession } from 'next-auth/react';
 import { useDashboard } from '@/lib/swr';
@@ -46,7 +46,7 @@ export default function DashboardPage() {
       name: 'Actieve Diensten',
       value: data?.activeShifts ?? '-',
       icon: CalendarDaysIcon,
-      color: 'text-brand-400',
+      color: 'text-brand-500',
       bgColor: 'bg-brand-500/10',
       show: true,
     },
@@ -118,7 +118,7 @@ export default function DashboardPage() {
                   <stat.icon className={`h-5 w-5 ${stat.color}`} />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-white">{stat.value}</p>
+              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
               <p className="text-sm text-gray-400 mt-1">{stat.name}</p>
             </div>
           ))}
@@ -130,27 +130,27 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Komende Diensten</CardTitle>
-              <Link href="/planning" className="text-sm text-brand-400 hover:text-brand-300 flex items-center gap-1">
+              <Link href="/planning" className="text-sm text-brand-500 hover:text-brand-300 flex items-center gap-1">
                 Alles bekijken <ArrowRightIcon className="h-3 w-3" />
               </Link>
             </CardHeader>
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-16 bg-navy-800/50 rounded-lg animate-pulse" />
+                  <div key={i} className="h-16 bg-gray-50 rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : data?.upcomingShifts && data.upcomingShifts.length > 0 ? (
               <div className="space-y-3">
                 {data.upcomingShifts.map((shift: any) => (
-                  <div key={shift.id} className="flex items-center justify-between p-3 bg-navy-800/30 rounded-lg hover:bg-navy-800/50 transition-colors">
+                  <div key={shift.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-50 transition-colors">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-white truncate">{shift.location}</p>
+                        <p className="text-sm font-medium text-gray-900 truncate">{shift.location}</p>
                         {statusBadge(shift.status)}
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        {formatDate(shift.date, 'EEEE d MMM')} • {shift.startTime} - {shift.endTime}
+                        {formatDate(shift.date, 'EEEE d MMM')} â€¢ {shift.startTime} - {shift.endTime}
                       </p>
                       {shift.shiftUsers?.length > 0 && (
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -159,7 +159,7 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="text-right ml-3">
-                      <p className="text-sm font-medium text-brand-400">{calculateHours(shift.startTime, shift.endTime)}u</p>
+                      <p className="text-sm font-medium text-brand-500">{calculateHours(shift.startTime, shift.endTime)}u</p>
                     </div>
                   </div>
                 ))}
@@ -175,24 +175,24 @@ export default function DashboardPage() {
               <CardTitle>
                 {isAdmin ? 'Recente Beschikbaarheid' : 'Mijn Beschikbaarheid'}
               </CardTitle>
-              <Link href="/availability" className="text-sm text-brand-400 hover:text-brand-300 flex items-center gap-1">
+              <Link href="/availability" className="text-sm text-brand-500 hover:text-brand-300 flex items-center gap-1">
                 Bekijken <ArrowRightIcon className="h-3 w-3" />
               </Link>
             </CardHeader>
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-12 bg-navy-800/50 rounded-lg animate-pulse" />
+                  <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />
                 ))}
               </div>
             ) : data?.recentAvailability && data.recentAvailability.length > 0 ? (
               <div className="space-y-2">
                 {data.recentAvailability.map((a: any) => (
-                  <div key={a.id} className="flex items-center justify-between p-3 bg-navy-800/30 rounded-lg">
+                  <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div>
-                      {isAdmin && <p className="text-sm font-medium text-white">{a.user?.name}</p>}
+                      {isAdmin && <p className="text-sm font-medium text-gray-900">{a.user?.name}</p>}
                       <p className="text-xs text-gray-400">
-                        {formatDate(a.date, 'EEEE d MMM')} • {a.startTime} - {a.endTime}
+                        {formatDate(a.date, 'EEEE d MMM')} â€¢ {a.startTime} - {a.endTime}
                       </p>
                       {a.note && <p className="text-xs text-gray-500 mt-0.5">{a.note}</p>}
                     </div>

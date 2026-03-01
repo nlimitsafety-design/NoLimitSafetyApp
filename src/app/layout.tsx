@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import './globals.css';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'NoLimitSafety — Planning & Beheer',
+  title: 'NoLimitSafety â€” Planning & Beheer',
   description: 'Moderne planning en personeelsbeheer voor beveiligingsbedrijven',
 };
 

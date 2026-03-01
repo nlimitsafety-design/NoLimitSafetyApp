@@ -46,16 +46,16 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
         className={cn(
-          'relative w-full bg-navy-900 border border-navy-700 rounded-xl shadow-2xl',
+          'relative w-full bg-white border border-gray-200 rounded-xl shadow-2xl',
           'max-h-[90vh] overflow-y-auto',
           sizes[size]
         )}
       >
-        <div className="sticky top-0 flex items-center justify-between p-4 border-b border-navy-700 bg-navy-900 rounded-t-xl z-10">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <div className="sticky top-0 flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-t-xl z-10">
+          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-navy-800 transition-colors"
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             aria-label="Sluiten"
           >
             <XMarkIcon className="h-5 w-5" />

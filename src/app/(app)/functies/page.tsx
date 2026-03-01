@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -176,7 +176,7 @@ export default function FunctiesPage() {
               autoFocus
             />
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Kleur</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Kleur</label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map((c) => (
                   <button
@@ -194,7 +194,7 @@ export default function FunctiesPage() {
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-400">Voorbeeld:</span>
               <span
-                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
+                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-gray-900"
                 style={{ backgroundColor: newColor + '33', color: newColor, border: `1px solid ${newColor}55` }}
               >
                 {newName || 'Functienaam'}
@@ -228,14 +228,14 @@ export default function FunctiesPage() {
         ) : (
           <div className="space-y-2">
             {activeFuncties.map((f: any) => (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-navy-800/50 hover:bg-navy-800 transition-colors">
+              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                 {editingId === f.id ? (
                   <div className="flex-1 flex items-center gap-3">
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-navy-900 border border-navy-600 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500"
+                      className="flex-1 bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-orange-500"
                       autoFocus
                     />
                     <div className="flex gap-1">
@@ -271,7 +271,7 @@ export default function FunctiesPage() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => { setEditingId(f.id); setEditName(f.name); setEditColor(f.color); }}
-                        className="p-1.5 text-gray-500 hover:text-white transition-colors rounded"
+                        className="p-1.5 text-gray-500 hover:text-gray-900 transition-colors rounded"
                         title="Bewerken"
                       >
                         <PencilSquareIcon className="h-4 w-4" />
@@ -300,7 +300,7 @@ export default function FunctiesPage() {
           </CardHeader>
           <div className="space-y-2">
             {inactiveFuncties.map((f: any) => (
-              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-navy-800/30 opacity-60 hover:opacity-100 transition-opacity">
+              <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 opacity-60 hover:opacity-100 transition-opacity">
                 <div className="flex items-center gap-3">
                   <span
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium line-through"

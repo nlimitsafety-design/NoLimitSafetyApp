@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
@@ -53,7 +53,7 @@ export default function Sidebar() {
   const NavContent = () => (
     <>
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-6 border-b border-navy-700/50">
+      <div className="flex items-center gap-3 px-4 py-6 border-b border-gray-700/50">
         <Image
           src="/logo.png"
           alt="NoLimitSafety"
@@ -77,7 +77,7 @@ export default function Sidebar() {
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                 isActive
                   ? 'bg-brand-500/15 text-brand-400 border border-brand-500/20'
-                  : 'text-gray-400 hover:text-white hover:bg-navy-800'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
               )}
             >
               <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive ? 'text-brand-400' : 'text-gray-500')} />
@@ -88,9 +88,9 @@ export default function Sidebar() {
       </nav>
 
       {/* User info & logout */}
-      <div className="p-4 border-t border-navy-700/50">
+      <div className="p-4 border-t border-gray-700/50">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-8 h-8 bg-navy-700 rounded-full flex items-center justify-center text-sm font-medium text-brand-400">
+          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-sm font-medium text-brand-400">
             {session?.user?.name?.charAt(0).toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0">
@@ -117,7 +117,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile hamburger */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-navy-950/95 backdrop-blur-md border-b border-navy-700/50 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900/95 backdrop-blur-md border-b border-gray-700/50 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Image
             src="/logo.png"
@@ -144,7 +144,7 @@ export default function Sidebar() {
       {/* Mobile sidebar */}
       <div
         className={cn(
-          'lg:hidden fixed top-0 left-0 bottom-0 z-40 w-72 bg-navy-950 border-r border-navy-700/50 transform transition-transform duration-300',
+          'lg:hidden fixed top-0 left-0 bottom-0 z-40 w-72 bg-gray-900 border-r border-gray-700/50 transform transition-transform duration-300',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -154,7 +154,7 @@ export default function Sidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-navy-950 border-r border-navy-700/50">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-gray-900 border-r border-gray-700/50">
         <NavContent />
       </div>
     </>

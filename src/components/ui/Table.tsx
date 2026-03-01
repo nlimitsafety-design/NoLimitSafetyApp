@@ -35,7 +35,7 @@ export default function Table<T extends Record<string, any>>({
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-navy-700">
+          <tr className="border-b border-gray-200">
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -50,12 +50,12 @@ export default function Table<T extends Record<string, any>>({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-navy-800">
+        <tbody className="divide-y divide-gray-100">
           {data.map((item) => (
             <tr
               key={keyExtractor(item)}
               className={cn(
-                'hover:bg-navy-800/50 transition-colors',
+                'hover:bg-gray-50 transition-colors',
                 onRowClick && 'cursor-pointer'
               )}
               onClick={() => onRowClick?.(item)}
@@ -64,7 +64,7 @@ export default function Table<T extends Record<string, any>>({
                 <td
                   key={col.key}
                   className={cn(
-                    'px-4 py-3 text-sm text-gray-300',
+                    'px-4 py-3 text-sm text-gray-600',
                     col.hideOnMobile && 'hidden md:table-cell',
                     col.className
                   )}

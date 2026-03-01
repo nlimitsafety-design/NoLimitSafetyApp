@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
@@ -42,7 +42,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-navy-950 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
       {/* Background gradient */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-brand-500/5 rounded-full blur-3xl" />
@@ -60,13 +60,13 @@ export default function LoginPage() {
             className="mx-auto h-16 w-auto object-contain mb-4"
             priority
           />
-          <p className="text-gray-400 mt-1">Planning & Beheer</p>
+          <p className="text-gray-500 mt-1">Planning & Beheer</p>
         </div>
 
         {/* Login card */}
-        <div className="bg-navy-900/80 border border-navy-700/50 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-2xl">
-          <h2 className="text-xl font-semibold text-white mb-1">Inloggen</h2>
-          <p className="text-gray-400 text-sm mb-6">Vul je gegevens in om door te gaan</p>
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-xl">
+          <h2 className="text-xl font-semibold text-gray-900 mb-1">Inloggen</h2>
+          <p className="text-gray-500 text-sm mb-6">Vul je gegevens in om door te gaan</p>
 
           {error && (
             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
@@ -88,7 +88,7 @@ export default function LoginPage() {
               <Input
                 label="Wachtwoord"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -97,7 +97,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[34px] text-gray-400 hover:text-gray-200 transition-colors"
+                className="absolute right-3 top-[34px] text-gray-400 hover:text-gray-600 transition-colors"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -113,7 +113,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-gray-600 text-xs mt-6">
+        <p className="text-center text-gray-400 text-xs mt-6">
           Wachtwoord vergeten? Neem contact op met de administrator.
         </p>
       </div>

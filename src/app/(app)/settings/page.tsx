@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useSession } from 'next-auth/react';
 import { useState, useEffect } from 'react';
@@ -134,13 +134,13 @@ export default function SettingsPage() {
         {/* Profile section */}
         <Card className="mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <UserCircleIcon className="h-5 w-5 text-brand-400" />
+            <UserCircleIcon className="h-5 w-5 text-brand-500" />
             <CardTitle>Mijn Profiel</CardTitle>
           </div>
           {profileLoading ? (
             <div className="space-y-3">
               {[1, 2].map(i => (
-                <div key={i} className="h-10 bg-navy-800/50 rounded animate-pulse" />
+                <div key={i} className="h-10 bg-gray-50 rounded animate-pulse" />
               ))}
             </div>
           ) : (

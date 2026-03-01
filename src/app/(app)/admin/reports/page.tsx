@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
@@ -69,7 +69,7 @@ export default function ReportsPage() {
     return params;
   }, [debouncedStart, debouncedEnd, debouncedEmployee, debouncedLocation, debouncedStatus]);
 
-  // SWR — cached & deduplicated
+  // SWR â€” cached & deduplicated
   const { data: reportData = [], isLoading: loading } = useReports(reportParams);
   const { data: employees = [] } = useEmployees();
 
@@ -91,7 +91,7 @@ export default function ReportsPage() {
         a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
-        toast.success('CSV geëxporteerd');
+        toast.success('CSV geÃ«xporteerd');
       } else {
         toast.error('CSV export mislukt');
       }
@@ -118,7 +118,7 @@ export default function ReportsPage() {
         a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
-        toast.success('Excel geëxporteerd');
+        toast.success('Excel geÃ«xporteerd');
       } else {
         toast.error('Excel export mislukt');
       }
@@ -145,7 +145,7 @@ export default function ReportsPage() {
       header: 'Medewerker',
       render: (row: ReportRow) => (
         <div>
-          <p className="font-medium text-white">{row.employeeName}</p>
+          <p className="font-medium text-gray-900">{row.employeeName}</p>
           <p className="text-xs text-gray-500 md:hidden">{formatCurrency(row.hourlyRate)}/u</p>
         </div>
       ),
@@ -154,17 +154,17 @@ export default function ReportsPage() {
       key: 'hourlyRate',
       header: 'Tarief',
       hideOnMobile: true,
-      render: (row: ReportRow) => <span className="text-gray-300">{formatCurrency(row.hourlyRate)}/u</span>,
+      render: (row: ReportRow) => <span className="text-gray-600">{formatCurrency(row.hourlyRate)}/u</span>,
     },
     {
       key: 'totalShifts',
       header: 'Diensten',
-      render: (row: ReportRow) => <span className="text-white font-medium">{row.totalShifts}</span>,
+      render: (row: ReportRow) => <span className="text-gray-900 font-medium">{row.totalShifts}</span>,
     },
     {
       key: 'totalHours',
       header: 'Uren',
-      render: (row: ReportRow) => <span className="text-brand-400 font-medium">{row.totalHours.toFixed(1)}</span>,
+      render: (row: ReportRow) => <span className="text-brand-500 font-medium">{row.totalHours.toFixed(1)}</span>,
     },
     {
       key: 'totalAmount',
@@ -259,11 +259,11 @@ export default function ReportsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Totaal Diensten</p>
-            <p className="text-lg sm:text-2xl font-bold text-white mt-1">{totalShifts}</p>
+            <p className="text-lg sm:text-2xl font-bold text-gray-900 mt-1">{totalShifts}</p>
           </Card>
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Totaal Uren</p>
-            <p className="text-lg sm:text-2xl font-bold text-brand-400 mt-1">{totalHours.toFixed(1)}</p>
+            <p className="text-lg sm:text-2xl font-bold text-brand-500 mt-1">{totalHours.toFixed(1)}</p>
           </Card>
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Toeslagen</p>
@@ -277,13 +277,13 @@ export default function ReportsPage() {
 
         {/* Per-employee table */}
         <Card padding={false} className="mb-6">
-          <div className="p-4 border-b border-navy-700">
-            <h3 className="text-lg font-semibold text-white">Per Medewerker</h3>
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900">Per Medewerker</h3>
           </div>
           {loading ? (
             <div className="p-8 space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-12 bg-navy-800/50 rounded animate-pulse" />
+                <div key={i} className="h-12 bg-gray-50 rounded animate-pulse" />
               ))}
             </div>
           ) : (
@@ -297,8 +297,8 @@ export default function ReportsPage() {
               />
               {/* Expanded detail */}
               {expandedRow && (
-                <div className="p-4 bg-navy-800/30 border-t border-navy-700">
-                  <h4 className="text-sm font-medium text-gray-300 mb-3">
+                <div className="p-4 bg-gray-50 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-600 mb-3">
                     Detail: {(reportData as ReportRow[]).find((r: ReportRow) => r.employeeId === expandedRow)?.employeeName}
                   </h4>
                   <div className="overflow-x-auto">
@@ -314,25 +314,25 @@ export default function ReportsPage() {
                           <th className="pb-2">Bedrag</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-navy-800">
+                      <tbody className="divide-y divide-gray-100">
                         {(reportData as ReportRow[])
                           .find((r: ReportRow) => r.employeeId === expandedRow)
                           ?.shifts.map((s) => (
-                            <tr key={s.id} className="text-gray-300">
+                            <tr key={s.id} className="text-gray-600">
                               <td className="py-2 pr-4">{formatDate(s.date, 'dd/MM')}</td>
                               <td className="py-2 pr-4">{s.startTime}-{s.endTime}</td>
                               <td className="py-2 pr-4">{s.location}</td>
                               <td className="py-2 pr-4 hidden sm:table-cell">
                                 <Badge variant="orange">{({TOEZICHT:'Toezicht',TRAINING:'Training',EVENT:'Evenement',ANDERS:'Anders'})[s.type] || s.type}</Badge>
                               </td>
-                              <td className="py-2 pr-4 text-brand-400">{s.hours.toFixed(1)}</td>
+                              <td className="py-2 pr-4 text-brand-500">{s.hours.toFixed(1)}</td>
                               <td className="py-2 pr-4 hidden sm:table-cell">
                                 {(s.surchargeAmount || 0) > 0 ? (
-                                  <span className="text-yellow-400" title={s.surchargeDetails?.map((d: any) => `${d.ruleName}: ${d.hours.toFixed(1)}u × €${d.extraRate.toFixed(2)} = €${d.amount.toFixed(2)}`).join('\n')}>
+                                  <span className="text-yellow-400" title={s.surchargeDetails?.map((d: any) => `${d.ruleName}: ${d.hours.toFixed(1)}u Ã— â‚¬${d.extraRate.toFixed(2)} = â‚¬${d.amount.toFixed(2)}`).join('\n')}>
                                     {formatCurrency(s.surchargeAmount)}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-600">—</span>
+                                  <span className="text-gray-600">â€”</span>
                                 )}
                               </td>
                               <td className="py-2 text-green-400">{formatCurrency(s.amount)}</td>
