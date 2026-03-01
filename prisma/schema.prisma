@@ -158,3 +158,18 @@ model Functie {
 
   @@map("functies")
 }
+
+model Toeslag {
+  id        String   @id @default(cuid())
+  name      String   @unique     // e.g. "Avond", "Nacht", "Zaterdag", "Zondag", "Feestdag"
+  type      String               // TIME_BASED or DAY_BASED
+  startTime String?              // HH:mm — for TIME_BASED (e.g. "20:00")
+  endTime   String?              // HH:mm — for TIME_BASED (e.g. "06:00" = next day)
+  days      String?              // comma-separated ISO weekdays: "6" = zaterdag, "7" = zondag
+  percentage Float               // e.g. 130 means 130% (so 30% extra)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("toeslagen")
+}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/server-auth';
 import { calculateHours, calculateAmount } from '@/lib/utils';
+import { calculateToeslagen, calculateShiftCostWithToeslagen, type ToeslagRule } from '@/lib/toeslagen';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import ExcelJS from 'exceljs';
@@ -55,17 +56,35 @@ export async function GET(req: NextRequest) {
       where.shiftUsers = { some: { userId: employeeId } };
     }
 
-    const shifts = await prisma.shift.findMany({
-      where,
-      include: {
-        shiftUsers: {
-          include: {
-            user: { select: { id: true, name: true, email: true, hourlyRate: true } },
+    const [shifts, toeslagRules] = await Promise.all([
+      prisma.shift.findMany({
+        where,
+        include: {
+          shiftUsers: {
+            include: {
+              user: { select: { id: true, name: true, email: true, hourlyRate: true } },
+            },
           },
         },
-      },
-      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-    });
+        orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      }),
+      prisma.toeslag.findMany({
+        where: { active: true },
+        orderBy: { sortOrder: 'asc' },
+      }),
+    ]);
+
+    const rules: ToeslagRule[] = toeslagRules.map((t) => ({
+      id: t.id,
+      name: t.name,
+      type: t.type as 'TIME_BASED' | 'DAY_BASED',
+      startTime: t.startTime,
+      endTime: t.endTime,
+      days: t.days,
+      percentage: t.percentage,
+      active: t.active,
+      sortOrder: t.sortOrder,
+    }));
 
     /* ── Formatting helpers ───────────────────────────── */
     const startLabel = start
@@ -106,7 +125,9 @@ export async function GET(req: NextRequest) {
       { header: 'Medewerker(s)', key: 'medewerker', width: 32 },
       { header: 'Status', key: 'status', width: 14 },
       { header: 'Opmerking', key: 'opmerking', width: 36, style: { alignment: { wrapText: true, vertical: 'top' } as any } },
-      { header: 'Bedrag', key: 'bedrag', width: 18, style: { numFmt: '€ #,##0.00' } },
+      { header: 'Basisbedrag', key: 'basisbedrag', width: 18, style: { numFmt: '€ #,##0.00' } },
+      { header: 'Toeslag', key: 'toeslag', width: 18, style: { numFmt: '€ #,##0.00' } },
+      { header: 'Totaal', key: 'bedrag', width: 18, style: { numFmt: '€ #,##0.00' } },
     );
 
     ws.columns = cols.map((c) => ({
@@ -151,10 +172,14 @@ export async function GET(req: NextRequest) {
 
     /* ── Data rows ────────────────────────────────────── */
     let grandHours = 0;
+    let grandBaseAmount = 0;
+    let grandSurchargeAmount = 0;
     let grandAmount = 0;
     let dataRowCount = 0;
 
     const datumColIdx = cols.findIndex((c) => c.key === 'datum') + 1;
+    const basisbedragColIdx = cols.findIndex((c) => c.key === 'basisbedrag') + 1;
+    const toeslagColIdx = cols.findIndex((c) => c.key === 'toeslag') + 1;
     const bedragColIdx = cols.findIndex((c) => c.key === 'bedrag') + 1;
     const urenColIdx = includeHours ? cols.findIndex((c) => c.key === 'uren') + 1 : -1;
     const opmerkingColIdx = cols.findIndex((c) => c.key === 'opmerking') + 1;
@@ -168,13 +193,25 @@ export async function GET(req: NextRequest) {
       if (relevantUsers.length === 0) continue;
 
       const names = relevantUsers.map((su: any) => su.user.name).join(', ');
-      const totalForShift = relevantUsers.reduce(
-        (s: number, su: any) => s + calculateAmount(hours, su.user.hourlyRate),
-        0,
-      );
 
-      // Round to 2 decimals to prevent float drift
-      const roundedAmount = Math.round(totalForShift * 100) / 100;
+      // Calculate surcharges for this shift
+      const toeslagResult = calculateToeslagen(shift.date, shift.startTime, shift.endTime, rules);
+
+      let shiftBaseTotal = 0;
+      let shiftSurchargeTotal = 0;
+      for (const su of relevantUsers) {
+        const costResult = calculateShiftCostWithToeslagen(
+          hours,
+          (su as any).user.hourlyRate,
+          toeslagResult.breakdowns,
+        );
+        shiftBaseTotal += costResult.baseAmount;
+        shiftSurchargeTotal += costResult.surchargeAmount;
+      }
+
+      const roundedBaseAmount = Math.round(shiftBaseTotal * 100) / 100;
+      const roundedSurchargeAmount = Math.round(shiftSurchargeTotal * 100) / 100;
+      const roundedTotalAmount = Math.round((shiftBaseTotal + shiftSurchargeTotal) * 100) / 100;
       const roundedHours = Math.round(hours * 100) / 100;
 
       const rowData: Record<string, any> = {
@@ -186,7 +223,9 @@ export async function GET(req: NextRequest) {
         medewerker: names,
         status: translateStatus(shift.status),
         opmerking: (shift.note || '').replace(/[\r\n]+/g, ' '),
-        bedrag: roundedAmount, // real number → numFmt € #,##0.00
+        basisbedrag: roundedBaseAmount,
+        toeslag: roundedSurchargeAmount,
+        bedrag: roundedTotalAmount,
       };
       if (includeHours) {
         rowData.uren = roundedHours;
@@ -208,22 +247,34 @@ export async function GET(req: NextRequest) {
 
       // Ensure typed cells keep their numFmt
       row.getCell(datumColIdx).numFmt = 'dd-mm-yyyy';
+      row.getCell(basisbedragColIdx).numFmt = '€ #,##0.00';
+      row.getCell(toeslagColIdx).numFmt = '€ #,##0.00';
       row.getCell(bedragColIdx).numFmt = '€ #,##0.00';
       if (includeHours && urenColIdx > 0) {
         row.getCell(urenColIdx).numFmt = '0.00';
       }
 
       grandHours += roundedHours;
-      grandAmount += roundedAmount;
+      grandBaseAmount += roundedBaseAmount;
+      grandSurchargeAmount += roundedSurchargeAmount;
+      grandAmount += roundedTotalAmount;
     }
 
     /* ── Totals row ───────────────────────────────────── */
+    const basisbedragColLetter = columnLetter(basisbedragColIdx);
+    const toeslagColLetter = columnLetter(toeslagColIdx);
     const bedragColLetter = columnLetter(bedragColIdx);
     const dataStartRow = 3;
     const dataEndRow = 2 + dataRowCount;
 
     const totalsData: Record<string, any> = {
       datum: 'TOTAAL',
+      basisbedrag: dataRowCount > 0
+        ? { formula: `SUM(${basisbedragColLetter}${dataStartRow}:${basisbedragColLetter}${dataEndRow})` }
+        : 0,
+      toeslag: dataRowCount > 0
+        ? { formula: `SUM(${toeslagColLetter}${dataStartRow}:${toeslagColLetter}${dataEndRow})` }
+        : 0,
       bedrag: dataRowCount > 0
         ? { formula: `SUM(${bedragColLetter}${dataStartRow}:${bedragColLetter}${dataEndRow})` }
         : 0,
@@ -238,6 +289,8 @@ export async function GET(req: NextRequest) {
 
     const totalsRow = ws.addRow(totalsData);
     totalsRow.font = { bold: true, size: 11 };
+    totalsRow.getCell(basisbedragColIdx).numFmt = '€ #,##0.00';
+    totalsRow.getCell(toeslagColIdx).numFmt = '€ #,##0.00';
     totalsRow.getCell(bedragColIdx).numFmt = '€ #,##0.00';
 
     if (includeHours && urenColIdx > 0) {

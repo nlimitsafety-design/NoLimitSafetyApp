@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/server-auth';
 import { calculateHours, calculateAmount } from '@/lib/utils';
+import { calculateToeslagen, calculateShiftCostWithToeslagen, type ToeslagRule } from '@/lib/toeslagen';
 
 export async function GET(req: NextRequest) {
   const { error } = await requireRole(['ADMIN', 'MANAGER']);
@@ -32,19 +33,38 @@ export async function GET(req: NextRequest) {
       where.shiftUsers = { some: { userId: employeeId } };
     }
 
-    const shifts = await prisma.shift.findMany({
-      where,
-      include: {
-        shiftUsers: {
-          include: {
-            user: {
-              select: { id: true, name: true, email: true, hourlyRate: true },
+    // Fetch shifts and active surcharge rules in parallel
+    const [shifts, toeslagRules] = await Promise.all([
+      prisma.shift.findMany({
+        where,
+        include: {
+          shiftUsers: {
+            include: {
+              user: {
+                select: { id: true, name: true, email: true, hourlyRate: true },
+              },
             },
           },
         },
-      },
-      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-    });
+        orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      }),
+      prisma.toeslag.findMany({
+        where: { active: true },
+        orderBy: { sortOrder: 'asc' },
+      }),
+    ]);
+
+    const rules: ToeslagRule[] = toeslagRules.map((t) => ({
+      id: t.id,
+      name: t.name,
+      type: t.type as 'TIME_BASED' | 'DAY_BASED',
+      startTime: t.startTime,
+      endTime: t.endTime,
+      days: t.days,
+      percentage: t.percentage,
+      active: t.active,
+      sortOrder: t.sortOrder,
+    }));
 
     // Group by employee
     const employeeMap = new Map<string, {
@@ -55,11 +75,16 @@ export async function GET(req: NextRequest) {
       totalShifts: number;
       totalHours: number;
       totalAmount: number;
+      totalBaseAmount: number;
+      totalSurchargeAmount: number;
       shifts: any[];
     }>();
 
     for (const shift of shifts) {
       const hours = calculateHours(shift.startTime, shift.endTime);
+
+      // Calculate surcharges for this shift
+      const toeslagResult = calculateToeslagen(shift.date, shift.startTime, shift.endTime, rules);
 
       for (const su of shift.shiftUsers) {
         if (employeeId && su.userId !== employeeId) continue;
@@ -73,15 +98,26 @@ export async function GET(req: NextRequest) {
             totalShifts: 0,
             totalHours: 0,
             totalAmount: 0,
+            totalBaseAmount: 0,
+            totalSurchargeAmount: 0,
             shifts: [],
           });
         }
 
         const emp = employeeMap.get(su.userId)!;
-        const amount = calculateAmount(hours, su.user.hourlyRate);
+
+        // Calculate cost with surcharges
+        const costResult = calculateShiftCostWithToeslagen(
+          hours,
+          su.user.hourlyRate,
+          toeslagResult.breakdowns,
+        );
+
         emp.totalShifts += 1;
         emp.totalHours += hours;
-        emp.totalAmount += amount;
+        emp.totalBaseAmount += costResult.baseAmount;
+        emp.totalSurchargeAmount += costResult.surchargeAmount;
+        emp.totalAmount += costResult.totalAmount;
         emp.shifts.push({
           id: shift.id,
           date: shift.date,
@@ -91,12 +127,24 @@ export async function GET(req: NextRequest) {
           type: shift.type,
           status: shift.status,
           hours,
-          amount,
+          amount: costResult.totalAmount,
+          baseAmount: costResult.baseAmount,
+          surchargeAmount: costResult.surchargeAmount,
+          surchargeDetails: costResult.details,
         });
       }
     }
 
-    const result = Array.from(employeeMap.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+    const result = Array.from(employeeMap.values())
+      .map((emp) => ({
+        ...emp,
+        totalBaseAmount: Math.round(emp.totalBaseAmount * 100) / 100,
+        totalSurchargeAmount: Math.round(emp.totalSurchargeAmount * 100) / 100,
+        totalAmount: Math.round(emp.totalAmount * 100) / 100,
+        totalHours: Math.round(emp.totalHours * 100) / 100,
+      }))
+      .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+
     return NextResponse.json(result);
   } catch (error) {
     console.error('Reports error:', error);

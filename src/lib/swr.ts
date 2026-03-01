@@ -90,3 +90,8 @@ export function useFuncties(showAll = false) {
   const key = showAll ? '/api/functies?all=true' : '/api/functies';
   return useSWR<any[]>(key, fetcher, swrDefaults);
 }
+
+export function useToeslagen(showAll = false) {
+  const key = showAll ? '/api/toeslagen?all=true' : '/api/toeslagen';
+  return useSWR<any[]>(key, fetcher, swrDefaults);
+}

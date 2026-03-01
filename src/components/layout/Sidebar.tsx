@@ -17,6 +17,7 @@ import {
   XMarkIcon,
   BriefcaseIcon,
   TagIcon,
+  CurrencyEuroIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Beschikbaarheid', employeeName: 'Mijn Beschikbaarheid', href: '/availability', icon: ClockIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Medewerkers', employeeName: 'Medewerkers', href: '/employees', icon: UsersIcon, roles: ['ADMIN'] },
   { name: 'Functies', employeeName: 'Functies', href: '/functies', icon: TagIcon, roles: ['ADMIN'] },
+  { name: 'Toeslagen', employeeName: 'Toeslagen', href: '/toeslagen', icon: CurrencyEuroIcon, roles: ['ADMIN'] },
   { name: 'Rapportages', employeeName: 'Rapportages', href: '/admin/reports', icon: DocumentChartBarIcon, roles: ['ADMIN', 'MANAGER'] },
   { name: 'Instellingen', employeeName: 'Instellingen', href: '/settings', icon: Cog6ToothIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
 ];

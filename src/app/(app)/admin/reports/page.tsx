@@ -23,6 +23,8 @@ interface ReportRow {
   totalShifts: number;
   totalHours: number;
   totalAmount: number;
+  totalBaseAmount: number;
+  totalSurchargeAmount: number;
   shifts: {
     id: string;
     date: string;
@@ -33,6 +35,9 @@ interface ReportRow {
     status: string;
     hours: number;
     amount: number;
+    baseAmount: number;
+    surchargeAmount: number;
+    surchargeDetails: { ruleName: string; hours: number; extraRate: number; amount: number }[];
   }[];
 }
 
@@ -125,6 +130,8 @@ export default function ReportsPage() {
   // Totals
   const totalShifts = reportData.reduce((sum, r) => sum + r.totalShifts, 0);
   const totalHours = reportData.reduce((sum, r) => sum + r.totalHours, 0);
+  const totalBaseAmount = reportData.reduce((sum, r) => sum + (r.totalBaseAmount || 0), 0);
+  const totalSurchargeAmount = reportData.reduce((sum, r) => sum + (r.totalSurchargeAmount || 0), 0);
   const totalAmount = reportData.reduce((sum, r) => sum + r.totalAmount, 0);
 
   // Unique locations from shifts
@@ -163,7 +170,14 @@ export default function ReportsPage() {
       key: 'totalAmount',
       header: 'Bedrag',
       render: (row: ReportRow) => (
-        <span className="text-green-400 font-semibold">{formatCurrency(row.totalAmount)}</span>
+        <div>
+          <span className="text-green-400 font-semibold">{formatCurrency(row.totalAmount)}</span>
+          {(row.totalSurchargeAmount || 0) > 0 && (
+            <p className="text-xs text-yellow-500/80 mt-0.5">
+              incl. {formatCurrency(row.totalSurchargeAmount)} toeslag
+            </p>
+          )}
+        </div>
       ),
     },
   ];
@@ -242,7 +256,7 @@ export default function ReportsPage() {
         </Card>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Totaal Diensten</p>
             <p className="text-lg sm:text-2xl font-bold text-white mt-1">{totalShifts}</p>
@@ -250,6 +264,10 @@ export default function ReportsPage() {
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Totaal Uren</p>
             <p className="text-lg sm:text-2xl font-bold text-brand-400 mt-1">{totalHours.toFixed(1)}</p>
+          </Card>
+          <Card>
+            <p className="text-xs sm:text-sm text-gray-400">Toeslagen</p>
+            <p className="text-lg sm:text-2xl font-bold text-yellow-400 mt-1 truncate">{formatCurrency(totalSurchargeAmount)}</p>
           </Card>
           <Card>
             <p className="text-xs sm:text-sm text-gray-400">Totaal Bedrag</p>
@@ -292,6 +310,7 @@ export default function ReportsPage() {
                           <th className="pb-2 pr-4">Locatie</th>
                           <th className="pb-2 pr-4 hidden sm:table-cell">Type</th>
                           <th className="pb-2 pr-4">Uren</th>
+                          <th className="pb-2 pr-4 hidden sm:table-cell">Toeslag</th>
                           <th className="pb-2">Bedrag</th>
                         </tr>
                       </thead>
@@ -307,6 +326,15 @@ export default function ReportsPage() {
                                 <Badge variant="orange">{({TOEZICHT:'Toezicht',TRAINING:'Training',EVENT:'Evenement',ANDERS:'Anders'})[s.type] || s.type}</Badge>
                               </td>
                               <td className="py-2 pr-4 text-brand-400">{s.hours.toFixed(1)}</td>
+                              <td className="py-2 pr-4 hidden sm:table-cell">
+                                {(s.surchargeAmount || 0) > 0 ? (
+                                  <span className="text-yellow-400" title={s.surchargeDetails?.map((d: any) => `${d.ruleName}: ${d.hours.toFixed(1)}u × €${d.extraRate.toFixed(2)} = €${d.amount.toFixed(2)}`).join('\n')}>
+                                    {formatCurrency(s.surchargeAmount)}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-600">—</span>
+                                )}
+                              </td>
                               <td className="py-2 text-green-400">{formatCurrency(s.amount)}</td>
                             </tr>
                           ))}

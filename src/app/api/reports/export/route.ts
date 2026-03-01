@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/server-auth';
 import { calculateHours, calculateAmount } from '@/lib/utils';
+import { calculateToeslagen, calculateShiftCostWithToeslagen, type ToeslagRule } from '@/lib/toeslagen';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
@@ -42,17 +43,35 @@ export async function GET(req: NextRequest) {
       where.shiftUsers = { some: { userId: employeeId } };
     }
 
-    const shifts = await prisma.shift.findMany({
-      where,
-      include: {
-        shiftUsers: {
-          include: {
-            user: { select: { id: true, name: true, email: true, hourlyRate: true } },
+    const [shifts, toeslagRules] = await Promise.all([
+      prisma.shift.findMany({
+        where,
+        include: {
+          shiftUsers: {
+            include: {
+              user: { select: { id: true, name: true, email: true, hourlyRate: true } },
+            },
           },
         },
-      },
-      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
-    });
+        orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+      }),
+      prisma.toeslag.findMany({
+        where: { active: true },
+        orderBy: { sortOrder: 'asc' },
+      }),
+    ]);
+
+    const rules: ToeslagRule[] = toeslagRules.map((t) => ({
+      id: t.id,
+      name: t.name,
+      type: t.type as 'TIME_BASED' | 'DAY_BASED',
+      startTime: t.startTime,
+      endTime: t.endTime,
+      days: t.days,
+      percentage: t.percentage,
+      active: t.active,
+      sortOrder: t.sortOrder,
+    }));
 
     const startLabel = start ? format(new Date(start), 'd MMMM yyyy', { locale: nl }) : 'Begin';
     const endLabel = end ? format(new Date(end), 'd MMMM yyyy', { locale: nl }) : 'Eind';
@@ -72,11 +91,13 @@ export async function GET(req: NextRequest) {
     /* ── Column headers ───────────────────────────────── */
     const headers = ['Datum', 'Start', 'Eind'];
     if (includeHours) headers.push('Uren');
-    headers.push('Locatie', 'Type', 'Medewerker(s)', 'Status', 'Opmerking', 'Bedrag');
+    headers.push('Locatie', 'Type', 'Medewerker(s)', 'Status', 'Opmerking', 'Basisbedrag', 'Toeslag', 'Totaal');
     rows.push(headers.join(sep));
 
     /* ── Data rows ────────────────────────────────────── */
     let grandHours = 0;
+    let grandBaseAmount = 0;
+    let grandSurchargeAmount = 0;
     let grandAmount = 0;
 
     for (const shift of shifts) {
@@ -88,12 +109,25 @@ export async function GET(req: NextRequest) {
       if (relevantUsers.length === 0) continue;
 
       const names = relevantUsers.map((su: any) => su.user.name).join(', ');
-      const totalForShift = relevantUsers.reduce(
-        (s: number, su: any) => s + calculateAmount(hours, su.user.hourlyRate),
-        0,
-      );
 
-      const roundedAmount = Math.round(totalForShift * 100) / 100;
+      // Calculate surcharges for this shift
+      const toeslagResult = calculateToeslagen(shift.date, shift.startTime, shift.endTime, rules);
+
+      let shiftBaseTotal = 0;
+      let shiftSurchargeTotal = 0;
+      for (const su of relevantUsers) {
+        const costResult = calculateShiftCostWithToeslagen(
+          hours,
+          (su as any).user.hourlyRate,
+          toeslagResult.breakdowns,
+        );
+        shiftBaseTotal += costResult.baseAmount;
+        shiftSurchargeTotal += costResult.surchargeAmount;
+      }
+
+      const roundedBaseAmount = Math.round(shiftBaseTotal * 100) / 100;
+      const roundedSurchargeAmount = Math.round(shiftSurchargeTotal * 100) / 100;
+      const roundedTotalAmount = Math.round((shiftBaseTotal + shiftSurchargeTotal) * 100) / 100;
       const roundedHours = Math.round(hours * 100) / 100;
 
       const dateStr = format(new Date(shift.date), 'dd-MM-yyyy');
@@ -110,21 +144,24 @@ export async function GET(req: NextRequest) {
         csvQuote(names, sep),
         translateStatus(shift.status),
         csvQuote((shift.note || '').replace(/[\r\n]+/g, ' '), sep),
-        roundedAmount.toFixed(2), // plain number – Excel auto-parses
+        roundedBaseAmount.toFixed(2),
+        roundedSurchargeAmount.toFixed(2),
+        roundedTotalAmount.toFixed(2),
       );
 
       rows.push(fields.join(sep));
 
       grandHours += roundedHours;
-      grandAmount += roundedAmount;
+      grandBaseAmount += roundedBaseAmount;
+      grandSurchargeAmount += roundedSurchargeAmount;
+      grandAmount += roundedTotalAmount;
     }
 
     /* ── Totals row ───────────────────────────────────── */
     rows.push('');
-    const emptyBefore = includeHours ? 3 : 2; // columns before Locatie minus 1
     const totalFields = ['TOTAAL', '', ''];
     if (includeHours) totalFields.push(grandHours.toFixed(2));
-    totalFields.push('', '', '', '', '', grandAmount.toFixed(2));
+    totalFields.push('', '', '', '', '', grandBaseAmount.toFixed(2), grandSurchargeAmount.toFixed(2), grandAmount.toFixed(2));
     rows.push(totalFields.join(sep));
 
     rows.push('');
