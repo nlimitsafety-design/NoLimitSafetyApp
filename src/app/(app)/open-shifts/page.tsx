@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -118,7 +118,7 @@ export default function OpenShiftsPage() {
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <ClockIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
                     <span>
-                      {shift.startTime} â€“ {shift.endTime}{' '}
+                      {shift.startTime} - {shift.endTime}{' '}
                       <span className="text-gray-500">({hours.toFixed(1)}u)</span>
                     </span>
                   </div>
@@ -188,7 +188,7 @@ export default function OpenShiftsPage() {
                         <ArrowPathIcon className="h-5 w-5 text-yellow-400 flex-shrink-0" />
                         <div>
                           <p className="text-sm text-gray-900 font-medium">
-                            {formatDate(req.shift.date, 'EEE d MMM')} â€” {req.shift.startTime}-{req.shift.endTime}
+                            {formatDate(req.shift.date, 'EEE d MMM')} - {req.shift.startTime}-{req.shift.endTime}
                           </p>
                           <p className="text-xs text-gray-500">{req.shift.location}</p>
                         </div>
@@ -219,7 +219,7 @@ export default function OpenShiftsPage() {
                         )}
                         <div>
                           <p className="text-sm text-gray-900 font-medium">
-                            {formatDate(req.shift.date, 'EEE d MMM')} â€” {req.shift.startTime}-{req.shift.endTime}
+                            {formatDate(req.shift.date, 'EEE d MMM')} - {req.shift.startTime}-{req.shift.endTime}
                           </p>
                           <p className="text-xs text-gray-500">{req.shift.location}</p>
                         </div>

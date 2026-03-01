@@ -69,7 +69,7 @@ export default function ReportsPage() {
     return params;
   }, [debouncedStart, debouncedEnd, debouncedEmployee, debouncedLocation, debouncedStatus]);
 
-  // SWR â€” cached & deduplicated
+  // SWR - cached & deduplicated
   const { data: reportData = [], isLoading: loading } = useReports(reportParams);
   const { data: employees = [] } = useEmployees();
 
@@ -332,7 +332,7 @@ export default function ReportsPage() {
                                     {formatCurrency(s.surchargeAmount)}
                                   </span>
                                 ) : (
-                                  <span className="text-gray-600">â€”</span>
+                                  <span className="text-gray-600">-</span>
                                 )}
                               </td>
                               <td className="py-2 text-green-400">{formatCurrency(s.amount)}</td>

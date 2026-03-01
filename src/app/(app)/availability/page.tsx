@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
@@ -517,8 +517,8 @@ export default function AvailabilityPage() {
             <h2 className="text-sm sm:text-lg font-semibold text-gray-900 text-center min-w-0 flex-1 sm:flex-initial sm:min-w-[240px]">
               {calendarView === 'week' ? (
                 <>
-                  <span className="sm:hidden">Wk {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} - {format(weekEnd, 'd MMM', { locale: nl })}</span>
-                  <span className="hidden sm:inline">Week {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                  <span className="sm:hidden">Wk {format(weekStart, 'w')} - {format(weekStart, 'd MMM', { locale: nl })} - {format(weekEnd, 'd MMM', { locale: nl })}</span>
+                  <span className="hidden sm:inline">Week {format(weekStart, 'w')} - {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM', { locale: nl })}</span>
                 </>
               ) : (
                 <span className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</span>
@@ -600,7 +600,7 @@ export default function AvailabilityPage() {
                           <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">
                             {dayItems.find((e) => e.type === 'AVAILABLE')?.startTime || ''}
                             {dayItems.find((e) => e.type === 'AVAILABLE')?.endTime
-                              ? `â€“${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
+                              ? `-${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
                               : ''}
                           </span>
                         </div>
@@ -701,7 +701,7 @@ export default function AvailabilityPage() {
                           </div>
                           {item.startTime && item.endTime ? (
                             <p className={`mt-1 font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
-                              {item.startTime} â€“ {item.endTime}
+                              {item.startTime} - {item.endTime}
                             </p>
                           ) : (
                             <p className="text-red-400 mt-1 font-medium">Hele dag</p>
@@ -780,7 +780,7 @@ export default function AvailabilityPage() {
                             onClick={() => openEditRecurring(item)}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-green-400 font-medium">{item.startTime} â€“ {item.endTime}</span>
+                              <span className="text-green-400 font-medium">{item.startTime} - {item.endTime}</span>
                               <div className="flex items-center gap-0.5">
                                 <button
                                   onClick={(e) => { e.stopPropagation(); openEditRecurring(item); }}
@@ -804,7 +804,7 @@ export default function AvailabilityPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-[10px] text-gray-600 italic">â€”</p>
+                      <p className="text-[10px] text-gray-600 italic">-</p>
                     )}
                   </div>
                 );
@@ -971,7 +971,7 @@ export default function AvailabilityPage() {
           <div className="bg-gray-100 rounded-lg p-3">
             <p className="text-xs text-gray-500 mb-1">Bron</p>
             <p className="text-sm text-gray-900 font-medium">
-              Week {format(weekStart, 'w')} â€” {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM yyyy', { locale: nl })}
+              Week {format(weekStart, 'w')} - {format(weekStart, 'd MMM', { locale: nl })} t/m {format(weekEnd, 'd MMM yyyy', { locale: nl })}
             </p>
             <p className="text-xs text-gray-400 mt-1">{exceptions.length} dag(en) in deze week</p>
           </div>

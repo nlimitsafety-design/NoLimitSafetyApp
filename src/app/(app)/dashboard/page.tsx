@@ -150,7 +150,7 @@ export default function DashboardPage() {
                         {statusBadge(shift.status)}
                       </div>
                       <p className="text-xs text-gray-400 mt-1">
-                        {formatDate(shift.date, 'EEEE d MMM')} â€¢ {shift.startTime} - {shift.endTime}
+                        {formatDate(shift.date, 'EEEE d MMM')} - {shift.startTime} - {shift.endTime}
                       </p>
                       {shift.shiftUsers?.length > 0 && (
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                     <div>
                       {isAdmin && <p className="text-sm font-medium text-gray-900">{a.user?.name}</p>}
                       <p className="text-xs text-gray-400">
-                        {formatDate(a.date, 'EEEE d MMM')} â€¢ {a.startTime} - {a.endTime}
+                        {formatDate(a.date, 'EEEE d MMM')} - {a.startTime} - {a.endTime}
                       </p>
                       {a.note && <p className="text-xs text-gray-500 mt-0.5">{a.note}</p>}
                     </div>

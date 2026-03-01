@@ -100,7 +100,7 @@ export default function PlanningPage() {
     return { start: format(startOfMonth(currentDate), 'yyyy-MM-dd'), end: format(endOfMonth(currentDate), 'yyyy-MM-dd') };
   }, [currentDate, view]);
 
-  // SWR â€” cached & deduplicated
+  // SWR - cached & deduplicated
   const { data: rawShifts = [], isLoading: loading, mutate: mutateShifts } = useShifts(start, end);
   const shifts = rawShifts as Shift[];
   const { data: allEmployees = [] } = useEmployees();
@@ -235,12 +235,12 @@ export default function PlanningPage() {
   function toggleEmployee(empId: string) {
     const alreadySelected = form.employeeIds.includes(empId);
     if (alreadySelected) {
-      // Deselect â€” always allowed
+      // Deselect - always allowed
       setForm(prev => ({ ...prev, employeeIds: prev.employeeIds.filter(id => id !== empId) }));
       return;
     }
 
-    // Selecting â€” check status
+    // Selecting - check status
     const empStatus = employeeStatuses.find(s => s.employeeId === empId);
     if (empStatus && empStatus.status !== 'INGEVULD') {
       // Show confirmation modal
@@ -768,7 +768,7 @@ export default function PlanningPage() {
                             {/* Status icon */}
                             <StatusIcon className={`h-5 w-5 flex-shrink-0 ${statusConfig.color}`} />
 
-                            {/* Employee info â€” responsive: card on mobile, row on desktop */}
+                            {/* Employee info - responsive: card on mobile, row on desktop */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 sm:gap-2">
                                 <p className="text-sm font-medium text-gray-900 truncate">{emp.employeeName}</p>
