@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ShieldCheckIcon } from '@heroicons/react/24/solid';
+import Image from 'next/image';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -52,10 +52,14 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-500 rounded-2xl shadow-lg shadow-brand-500/25 mb-4">
-            <ShieldCheckIcon className="h-9 w-9 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white">SecureStaff</h1>
+          <Image
+            src="/logo.png"
+            alt="NoLimitSafety"
+            width={280}
+            height={80}
+            className="mx-auto h-16 w-auto object-contain mb-4"
+            priority
+          />
           <p className="text-gray-400 mt-1">Planning & Beheer</p>
         </div>
 

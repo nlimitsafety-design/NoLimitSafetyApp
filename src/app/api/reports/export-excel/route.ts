@@ -97,7 +97,7 @@ export async function GET(req: NextRequest) {
 
     /* ── Workbook ─────────────────────────────────────── */
     const wb = new ExcelJS.Workbook();
-    wb.creator = 'SecureStaff';
+    wb.creator = 'NoLimitSafety';
     wb.created = new Date();
 
     const ws = wb.addWorksheet('Diensten detail', {
@@ -312,7 +312,7 @@ export async function GET(req: NextRequest) {
     /* ── Generate buffer ──────────────────────────────── */
     const buffer = await wb.xlsx.writeBuffer();
 
-    const fileName = `SecureStaff_Facturatie_${start || 'all'}_${end || 'all'}.xlsx`;
+    const fileName = `NoLimitSafety_Facturatie_${start || 'all'}_${end || 'all'}.xlsx`;
 
     return new NextResponse(buffer, {
       headers: {

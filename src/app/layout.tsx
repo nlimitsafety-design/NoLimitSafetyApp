@@ -3,7 +3,7 @@ import './globals.css';
 import Providers from '@/components/Providers';
 
 export const metadata: Metadata = {
-  title: 'SecureStaff — Planning & Beheer',
+  title: 'NoLimitSafety — Planning & Beheer',
   description: 'Moderne planning en personeelsbeheer voor beveiligingsbedrijven',
 };
 

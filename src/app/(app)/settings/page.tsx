@@ -6,7 +6,8 @@ import { useProfile } from '@/lib/swr';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
-import { ShieldCheckIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 interface Profile {
@@ -115,11 +116,14 @@ export default function SettingsPage() {
         {isAdmin && (
           <Card className="mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-brand-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/25">
-                <ShieldCheckIcon className="h-8 w-8 text-white" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="NoLimitSafety"
+                width={180}
+                height={50}
+                className="h-12 w-auto object-contain"
+              />
               <div>
-                <h2 className="text-xl font-bold text-white">SecureStaff</h2>
                 <p className="text-gray-400 text-sm">Planning & Beheer v1.0</p>
                 <p className="text-gray-500 text-xs mt-1">Ingelogd als {session?.user?.name} ({session?.user?.role})</p>
               </div>

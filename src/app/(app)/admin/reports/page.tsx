@@ -88,7 +88,7 @@ export default function ReportsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `SecureStaff_Facturatie_${startDate}_${endDate}.csv`;
+        a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
         toast.success('CSV geëxporteerd');
@@ -115,7 +115,7 @@ export default function ReportsPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `SecureStaff_Facturatie_${startDate}_${endDate}.xlsx`;
+        a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
         toast.success('Excel geëxporteerd');

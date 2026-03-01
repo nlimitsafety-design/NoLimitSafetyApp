@@ -165,11 +165,11 @@ export async function GET(req: NextRequest) {
     rows.push(totalFields.join(sep));
 
     rows.push('');
-    rows.push(`Gegenereerd door SecureStaff Planning & Beheer`);
+    rows.push(`Gegenereerd door NoLimitSafety Planning & Beheer`);
 
     /* ── Response ─────────────────────────────────────── */
     const csv = '\uFEFF' + rows.join('\r\n'); // BOM for Excel UTF-8 detection
-    const fileName = `SecureStaff_Facturatie_${start || 'all'}_${end || 'all'}.csv`;
+    const fileName = `NoLimitSafety_Facturatie_${start || 'all'}_${end || 'all'}.csv`;
 
     return new NextResponse(csv, {
       headers: {

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { cn } from '@/lib/utils';
@@ -12,7 +13,6 @@ import {
   DocumentChartBarIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
-  ShieldCheckIcon,
   Bars3Icon,
   XMarkIcon,
   BriefcaseIcon,
@@ -54,13 +54,14 @@ export default function Sidebar() {
     <>
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-6 border-b border-navy-700/50">
-        <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center shadow-lg shadow-brand-500/25">
-          <ShieldCheckIcon className="h-6 w-6 text-white" />
-        </div>
-        <div>
-          <h1 className="text-lg font-bold text-white tracking-tight">SecureStaff</h1>
-          <p className="text-xs text-gray-500">Planning & Beheer</p>
-        </div>
+        <Image
+          src="/logo.png"
+          alt="NoLimitSafety"
+          width={180}
+          height={50}
+          className="h-10 w-auto object-contain"
+          priority
+        />
       </div>
 
       {/* Navigation Links */}
@@ -118,10 +119,13 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-navy-950/95 backdrop-blur-md border-b border-navy-700/50 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-            <ShieldCheckIcon className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-white font-bold">SecureStaff</span>
+          <Image
+            src="/logo.png"
+            alt="NoLimitSafety"
+            width={140}
+            height={40}
+            className="h-8 w-auto object-contain"
+          />
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
