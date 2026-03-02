@@ -90,31 +90,23 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Fire-and-forget: send notifications
+    // Send notifications (awaited so push notifications complete before Vercel terminates)
+    const shiftNotifyInfo = {
+      id: shift.id,
+      date: shift.date,
+      startTime: shift.startTime,
+      endTime: shift.endTime,
+      location: shift.location,
+    };
+
     if (employeeIds.length > 0) {
-      notifyShiftAssigned(employeeIds, {
-        id: shift.id,
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        location: shift.location,
-      });
+      await notifyShiftAssigned(employeeIds, shiftNotifyInfo);
     }
 
     if (status === 'OPEN') {
-      // Notify all active employees about the new open shift
-      prisma.user.findMany({ where: { active: true, role: 'EMPLOYEE' }, select: { id: true } })
-        .then((users) => {
-          const ids = users.map((u) => u.id);
-          notifyNewOpenShift(ids, {
-            id: shift.id,
-            date: shift.date,
-            startTime: shift.startTime,
-            endTime: shift.endTime,
-            location: shift.location,
-          });
-        })
-        .catch(console.error);
+      const allEmployees = await prisma.user.findMany({ where: { active: true, role: 'EMPLOYEE' }, select: { id: true } });
+      const ids = allEmployees.map((u) => u.id);
+      await notifyNewOpenShift(ids, shiftNotifyInfo);
     }
 
     return NextResponse.json(shift, { status: 201 });

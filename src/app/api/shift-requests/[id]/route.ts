@@ -86,8 +86,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         });
       });
 
-      // Notify the approved user
-      notifyRequestApproved(request.userId, {
+      // Notify the approved user (awaited for push)
+      await notifyRequestApproved(request.userId, {
         id: request.shift.id,
         date: request.shift.date,
         startTime: request.shift.startTime,
@@ -97,7 +97,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
       // Notify all auto-rejected users
       if (otherPendingRequests.length > 0) {
-        notifyRequestRejected(
+        await notifyRequestRejected(
           otherPendingRequests.map((r) => r.userId),
           {
             id: request.shift.id,
@@ -121,8 +121,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         },
       });
 
-      // Notify the rejected user
-      notifyRequestRejected([request.userId], {
+      // Notify the rejected user (awaited for push)
+      await notifyRequestRejected([request.userId], {
         id: request.shift.id,
         date: request.shift.date,
         startTime: request.shift.startTime,

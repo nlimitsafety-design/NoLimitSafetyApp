@@ -213,16 +213,13 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Notify admins about the new request
-    prisma.user.findMany({ where: { role: { in: ['ADMIN', 'MANAGER'] }, active: true }, select: { id: true } })
-      .then((admins) => {
-        notifyNewRequest(
-          admins.map((a) => a.id),
-          user.name || 'Medewerker',
-          { id: shift.id, date: shift.date, startTime: shift.startTime, endTime: shift.endTime, location: shift.location },
-        );
-      })
-      .catch(console.error);
+    // Notify admins about the new request (awaited for push)
+    const admins = await prisma.user.findMany({ where: { role: { in: ['ADMIN', 'MANAGER'] }, active: true }, select: { id: true } });
+    await notifyNewRequest(
+      admins.map((a) => a.id),
+      user.name || 'Medewerker',
+      { id: shift.id, date: shift.date, startTime: shift.startTime, endTime: shift.endTime, location: shift.location },
+    );
 
     return NextResponse.json(request, { status: 201 });
   } catch (err: any) {

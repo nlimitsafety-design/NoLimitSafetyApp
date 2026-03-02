@@ -76,17 +76,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       location: shift.location,
     };
 
-    if (removedIds.length > 0) notifyShiftRemoved(removedIds, shiftInfo);
-    if (addedIds.length > 0) notifyShiftAssigned(addedIds, shiftInfo);
-    if (keptIds.length > 0) notifyShiftUpdated(keptIds, shiftInfo);
+    // Await notifications so push completes before Vercel terminates
+    if (removedIds.length > 0) await notifyShiftRemoved(removedIds, shiftInfo);
+    if (addedIds.length > 0) await notifyShiftAssigned(addedIds, shiftInfo);
+    if (keptIds.length > 0) await notifyShiftUpdated(keptIds, shiftInfo);
 
     if (status === 'OPEN') {
-      prisma.user.findMany({ where: { active: true, role: 'EMPLOYEE' }, select: { id: true } })
-        .then((users) => {
-          const ids = users.map((u) => u.id);
-          notifyNewOpenShift(ids, shiftInfo);
-        })
-        .catch(console.error);
+      const allEmployees = await prisma.user.findMany({ where: { active: true, role: 'EMPLOYEE' }, select: { id: true } });
+      const ids = allEmployees.map((u) => u.id);
+      await notifyNewOpenShift(ids, shiftInfo);
     }
 
     return NextResponse.json(shift);
@@ -112,9 +110,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     await prisma.shiftUser.deleteMany({ where: { shiftId: params.id } });
     await prisma.shift.delete({ where: { id: params.id } });
 
-    // Notify assigned users about deletion
+    // Notify assigned users about deletion (awaited for push)
     if (shift && shift.shiftUsers.length > 0) {
-      notifyShiftDeleted(
+      await notifyShiftDeleted(
         shift.shiftUsers.map((su) => su.userId),
         { date: shift.date, startTime: shift.startTime, endTime: shift.endTime, location: shift.location },
       );

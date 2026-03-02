@@ -37,8 +37,8 @@ export async function createNotification(params: CreateNotificationParams) {
         shiftId: params.shiftId || null,
       },
     });
-    // Send push notification
-    sendPushNotifications([params.userId], {
+    // Send push notification (awaited so Vercel doesn't terminate before send completes)
+    await sendPushNotifications([params.userId], {
       title: params.title,
       body: params.message,
       url: params.shiftId ? '/planning' : '/notifications',
@@ -72,8 +72,8 @@ export async function createNotifications(
         shiftId: shiftId || null,
       })),
     });
-    // Send push notifications
-    sendPushNotifications(userIds, {
+    // Send push notifications (awaited so Vercel doesn't terminate before send completes)
+    await sendPushNotifications(userIds, {
       title,
       body: message,
       url: shiftId ? '/planning' : '/notifications',
