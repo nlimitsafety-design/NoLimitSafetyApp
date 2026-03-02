@@ -259,7 +259,7 @@ export default function PlanningPage() {
   function confirmOverrideSelection() {
     if (!confirmModal) return;
     setForm(prev => ({ ...prev, employeeIds: [...prev.employeeIds, confirmModal.empId] }));
-    toast(`Override: ${confirmModal.empName} toegevoegd (${confirmModal.status === 'NIET_INGEVULD' ? 'niet ingevuld' : 'niet beschikbaar'})`, { icon: 'âš ï¸' });
+    toast(`Override: ${confirmModal.empName} toegevoegd (${confirmModal.status === 'NIET_INGEVULD' ? 'niet ingevuld' : 'niet beschikbaar'})`, { icon: '\u26A0\uFE0F' });
     setConfirmModal(null);
   }
 

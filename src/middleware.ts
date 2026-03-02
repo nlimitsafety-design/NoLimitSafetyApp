@@ -31,6 +31,7 @@ export const config = {
     '/api/functies/:path*',
     '/api/toeslagen/:path*',
     '/api/notifications/:path*',
+    '/api/push-subscription/:path*',
     '/api/auth/change-password',
   ],
 };

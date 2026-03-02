@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { sendPushNotifications } from '@/lib/push';
 
 /**
  * Notification types:
@@ -36,6 +37,14 @@ export async function createNotification(params: CreateNotificationParams) {
         shiftId: params.shiftId || null,
       },
     });
+    // Send push notification
+    sendPushNotifications([params.userId], {
+      title: params.title,
+      body: params.message,
+      url: params.shiftId ? '/planning' : '/notifications',
+      tag: params.type,
+      shiftId: params.shiftId,
+    }).catch(() => {});
   } catch (err) {
     console.error('Failed to create notification:', err);
   }
@@ -63,6 +72,14 @@ export async function createNotifications(
         shiftId: shiftId || null,
       })),
     });
+    // Send push notifications
+    sendPushNotifications(userIds, {
+      title,
+      body: message,
+      url: shiftId ? '/planning' : '/notifications',
+      tag: type,
+      shiftId,
+    }).catch(() => {});
   } catch (err) {
     console.error('Failed to create bulk notifications:', err);
   }

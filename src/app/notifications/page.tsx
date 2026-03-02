@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useNotifications } from '@/lib/swr';
-import { BellIcon, CheckIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { BellIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -19,6 +20,7 @@ const TYPE_LABELS: Record<string, { label: string; bg: string; text: string }> =
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const { data, mutate } = useNotifications();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
@@ -129,9 +131,14 @@ export default function NotificationsPage() {
                 return (
                   <div
                     key={n.id}
+                    onClick={() => {
+                      if (!n.read) markRead(n.id);
+                      if (n.shiftId) router.push('/planning');
+                    }}
                     className={cn(
                       'px-4 py-4 flex gap-4 items-start transition-colors',
-                      !n.read && 'bg-gray-800/30'
+                      !n.read && 'bg-gray-800/30',
+                      n.shiftId && 'cursor-pointer hover:bg-gray-700/30'
                     )}
                   >
                     <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', typeStyle.bg)}>
