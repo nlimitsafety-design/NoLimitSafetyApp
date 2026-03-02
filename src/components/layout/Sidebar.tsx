@@ -20,6 +20,7 @@ import {
   CurrencyEuroIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
+import NotificationBell from '@/components/NotificationBell';
 
 const navigation = [
   { name: 'Dashboard', employeeName: 'Dashboard', href: '/dashboard', icon: HomeIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
@@ -52,8 +53,8 @@ export default function Sidebar() {
 
   const NavContent = () => (
     <>
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-6 border-b border-gray-700/50">
+      {/* Logo + Notification Bell */}
+      <div className="flex items-center justify-between px-4 py-6 border-b border-gray-700/50">
         <Image
           src="/logo.png"
           alt="NoLimitSafety"
@@ -62,6 +63,7 @@ export default function Sidebar() {
           className="h-10 w-auto object-contain"
           priority
         />
+        <NotificationBell />
       </div>
 
       {/* Navigation Links */}
@@ -127,13 +129,16 @@ export default function Sidebar() {
             className="h-8 w-auto object-contain"
           />
         </div>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-gray-400 hover:text-white"
-          aria-label="Menu openen"
-        >
-          {mobileOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-2 text-gray-400 hover:text-white"
+            aria-label="Menu openen"
+          >
+            {mobileOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile overlay */}

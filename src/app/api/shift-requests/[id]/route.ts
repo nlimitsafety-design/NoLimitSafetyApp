@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/server-auth';
+import { notifyRequestApproved, notifyRequestRejected } from '@/lib/notifications';
 
 /**
  * PUT /api/shift-requests/[id]
@@ -34,6 +35,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     if (action === 'APPROVED') {
+      // Get all other pending requests BEFORE the transaction (for rejection notifications)
+      const otherPendingRequests = await prisma.shiftRequest.findMany({
+        where: {
+          shiftId: request.shiftId,
+          id: { not: params.id },
+          status: 'PENDING',
+        },
+        select: { userId: true },
+      });
+
       // Approve: assign user to shift, reject all other pending requests, change shift status
       await prisma.$transaction(async (tx) => {
         // Update this request to APPROVED
@@ -75,6 +86,29 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         });
       });
 
+      // Notify the approved user
+      notifyRequestApproved(request.userId, {
+        id: request.shift.id,
+        date: request.shift.date,
+        startTime: request.shift.startTime,
+        endTime: request.shift.endTime,
+        location: request.shift.location,
+      });
+
+      // Notify all auto-rejected users
+      if (otherPendingRequests.length > 0) {
+        notifyRequestRejected(
+          otherPendingRequests.map((r) => r.userId),
+          {
+            id: request.shift.id,
+            date: request.shift.date,
+            startTime: request.shift.startTime,
+            endTime: request.shift.endTime,
+            location: request.shift.location,
+          },
+        );
+      }
+
       return NextResponse.json({ success: true, message: 'Aanvraag geaccepteerd' });
     } else {
       // Reject this single request
@@ -85,6 +119,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           reviewedAt: new Date(),
           reviewedBy: adminId,
         },
+      });
+
+      // Notify the rejected user
+      notifyRequestRejected([request.userId], {
+        id: request.shift.id,
+        date: request.shift.date,
+        startTime: request.shift.startTime,
+        endTime: request.shift.endTime,
+        location: request.shift.location,
       });
 
       return NextResponse.json({ success: true, message: 'Aanvraag afgewezen' });

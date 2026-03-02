@@ -95,3 +95,11 @@ export function useToeslagen(showAll = false) {
   const key = showAll ? '/api/toeslagen?all=true' : '/api/toeslagen';
   return useSWR<any[]>(key, fetcher, swrDefaults);
 }
+
+export function useNotifications() {
+  return useSWR<any>('/api/notifications', fetcher, {
+    ...swrDefaults,
+    refreshInterval: 30000, // Poll every 30s for new notifications
+    revalidateOnFocus: true,
+  });
+}

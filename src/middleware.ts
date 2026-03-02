@@ -17,6 +17,7 @@ export const config = {
     '/open-shifts/:path*',
     '/functies/:path*',
     '/toeslagen/:path*',
+    '/notifications/:path*',
     '/api/employees/:path*',
     '/api/availability/:path*',
     '/api/availability-exceptions/:path*',
@@ -29,6 +30,7 @@ export const config = {
     '/api/dashboard/:path*',
     '/api/functies/:path*',
     '/api/toeslagen/:path*',
+    '/api/notifications/:path*',
     '/api/auth/change-password',
   ],
 };

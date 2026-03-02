@@ -25,6 +25,7 @@ model User {
   availabilityExceptions   AvailabilityException[]
   shiftUsers               ShiftUser[]
   shiftRequests            ShiftRequest[]
+  notifications            Notification[]
 
   @@map("users")
 }
@@ -172,4 +173,22 @@ model Toeslag {
   createdAt DateTime @default(now())
 
   @@map("toeslagen")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String               // recipient
+  type      String               // SHIFT_ASSIGNED, SHIFT_REMOVED, SHIFT_UPDATED, SHIFT_DELETED, REQUEST_APPROVED, REQUEST_REJECTED, NEW_REQUEST, NEW_OPEN_SHIFT
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  shiftId   String?              // optional reference to related shift
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@index([userId])
+  @@map("notifications")
 }

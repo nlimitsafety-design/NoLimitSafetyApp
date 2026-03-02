@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/server-auth';
 import { shiftSchema } from '@/lib/validations';
+import { notifyShiftAssigned, notifyNewOpenShift } from '@/lib/notifications';
 
 export async function GET(req: NextRequest) {
   const { error, session } = await requireAuth();
@@ -88,6 +89,33 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    // Fire-and-forget: send notifications
+    if (employeeIds.length > 0) {
+      notifyShiftAssigned(employeeIds, {
+        id: shift.id,
+        date: shift.date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        location: shift.location,
+      });
+    }
+
+    if (status === 'OPEN') {
+      // Notify all active employees about the new open shift
+      prisma.user.findMany({ where: { active: true, role: 'EMPLOYEE' }, select: { id: true } })
+        .then((users) => {
+          const ids = users.map((u) => u.id);
+          notifyNewOpenShift(ids, {
+            id: shift.id,
+            date: shift.date,
+            startTime: shift.startTime,
+            endTime: shift.endTime,
+            location: shift.location,
+          });
+        })
+        .catch(console.error);
+    }
 
     return NextResponse.json(shift, { status: 201 });
   } catch (error) {

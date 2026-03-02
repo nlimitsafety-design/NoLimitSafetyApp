@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth, requireRole } from '@/lib/server-auth';
 import { hasTimeOverlap } from '@/lib/utils';
+import { notifyNewRequest } from '@/lib/notifications';
 
 /**
  * GET /api/shift-requests?shiftId=...
@@ -211,6 +212,17 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
       },
     });
+
+    // Notify admins about the new request
+    prisma.user.findMany({ where: { role: { in: ['ADMIN', 'MANAGER'] }, active: true }, select: { id: true } })
+      .then((admins) => {
+        notifyNewRequest(
+          admins.map((a) => a.id),
+          user.name || 'Medewerker',
+          { id: shift.id, date: shift.date, startTime: shift.startTime, endTime: shift.endTime, location: shift.location },
+        );
+      })
+      .catch(console.error);
 
     return NextResponse.json(request, { status: 201 });
   } catch (err: any) {
