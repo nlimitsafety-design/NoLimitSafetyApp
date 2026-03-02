@@ -10,6 +10,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Wachtwoord', type: 'password' },
+        rememberMe: { label: 'Remember Me', type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -34,6 +35,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          rememberMe: credentials.rememberMe === 'true',
         };
       },
     }),
@@ -54,6 +56,13 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.rememberMe = (user as any).rememberMe || false;
+        // Set initial expiry based on rememberMe choice
+        if ((user as any).rememberMe) {
+          token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30 days
+        } else {
+          token.exp = Math.floor(Date.now() / 1000) + 8 * 60 * 60; // 8 hours
+        }
       }
       return token;
     },
@@ -70,7 +79,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 8 * 60 * 60, // 8 hours
+    maxAge: 30 * 24 * 60 * 60, // 30 days (for "ingelogd blijven"); JWT callback limits non-remember sessions
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

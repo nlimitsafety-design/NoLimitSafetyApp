@@ -11,6 +11,7 @@ import Input from '@/components/ui/Input';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +26,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email: email.toLowerCase().trim(),
         password,
+        rememberMe: rememberMe ? 'true' : 'false',
         redirect: false,
       });
 
@@ -107,6 +109,27 @@ export default function LoginPage() {
                 )}
               </button>
             </div>
+
+            {/* Remember me */}
+            <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="peer sr-only"
+                />
+                <div className="w-5 h-5 rounded-md border-2 border-gray-300 bg-white peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-all duration-200 flex items-center justify-center">
+                  {rememberMe && (
+                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">Ingelogd blijven</span>
+            </label>
+
             <Button type="submit" loading={loading} className="w-full" size="lg">
               Inloggen
             </Button>
