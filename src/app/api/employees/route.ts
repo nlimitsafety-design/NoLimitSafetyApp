@@ -19,13 +19,26 @@ export async function GET() {
         hourlyRate: true,
         active: true,
         createdAt: true,
-        functieId: true,
-        functie: { select: { id: true, name: true, color: true } },
+        userFuncties: {
+          select: { functie: { select: { id: true, name: true, color: true } } },
+        },
+        userKwalificaties: {
+          select: { kwalificatie: { select: { id: true, name: true } } },
+        },
       },
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json(employees);
+    // Flatten relations for frontend
+    const mapped = employees.map(emp => ({
+      ...emp,
+      functies: emp.userFuncties.map(uf => uf.functie),
+      kwalificaties: emp.userKwalificaties.map(uk => uk.kwalificatie),
+      userFuncties: undefined,
+      userKwalificaties: undefined,
+    }));
+
+    return NextResponse.json(mapped);
   } catch (error) {
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
@@ -47,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name, email, phone, role, hourlyRate, password, functieId } = parsed.data;
+    const { name, email, phone, role, hourlyRate, password, functieIds, kwalificatieIds } = parsed.data;
 
     // Check duplicate email
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -70,7 +83,16 @@ export async function POST(req: NextRequest) {
         hourlyRate,
         passwordHash,
         active: true,
-        functieId: functieId || null,
+        ...(functieIds && functieIds.length > 0 && {
+          userFuncties: {
+            create: functieIds.map((fId: string) => ({ functieId: fId })),
+          },
+        }),
+        ...(kwalificatieIds && kwalificatieIds.length > 0 && {
+          userKwalificaties: {
+            create: kwalificatieIds.map((kId: string) => ({ kwalificatieId: kId })),
+          },
+        }),
       },
       select: {
         id: true,
@@ -80,12 +102,24 @@ export async function POST(req: NextRequest) {
         role: true,
         hourlyRate: true,
         active: true,
-        functieId: true,
-        functie: { select: { id: true, name: true, color: true } },
+        userFuncties: {
+          select: { functie: { select: { id: true, name: true, color: true } } },
+        },
+        userKwalificaties: {
+          select: { kwalificatie: { select: { id: true, name: true } } },
+        },
       },
     });
 
-    return NextResponse.json(user, { status: 201 });
+    const result = {
+      ...user,
+      functies: user.userFuncties.map(uf => uf.functie),
+      kwalificaties: user.userKwalificaties.map(uk => uk.kwalificatie),
+      userFuncties: undefined,
+      userKwalificaties: undefined,
+    };
+
+    return NextResponse.json(result, { status: 201 });
   } catch (error) {
     console.error('Create employee error:', error);
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });

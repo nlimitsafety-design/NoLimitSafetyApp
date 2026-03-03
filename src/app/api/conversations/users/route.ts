@@ -14,13 +14,20 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
-        functieId: true,
-        functie: { select: { id: true, name: true, color: true } },
+        userFuncties: {
+          select: { functie: { select: { id: true, name: true, color: true } } },
+        },
       },
       orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json(users);
+    const mapped = users.map(u => ({
+      ...u,
+      functies: u.userFuncties.map(uf => uf.functie),
+      userFuncties: undefined,
+    }));
+
+    return NextResponse.json(mapped);
   } catch (e) {
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }

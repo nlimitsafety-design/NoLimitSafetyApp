@@ -17,11 +17,11 @@ model User {
   role         String         @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
   hourlyRate   Float          @default(0)
   active       Boolean        @default(true)
-  functieId    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  functie                  Functie?       @relation(fields: [functieId], references: [id], onDelete: SetNull)
+  userFuncties             UserFunctie[]
+  userKwalificaties        UserKwalificatie[]
   availability             Availability[]
   recurringAvailabilities  RecurringAvailability[]
   availabilityExceptions   AvailabilityException[]
@@ -33,7 +33,6 @@ model User {
   sentMessages             Message[]
   createdConversations     Conversation[] @relation("conversationCreator")
 
-  @@index([functieId])
   @@map("users")
 }
 
@@ -164,9 +163,48 @@ model Functie {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  users User[]
+  userFuncties UserFunctie[]
 
   @@map("functies")
+}
+
+model UserFunctie {
+  id        String @id @default(cuid())
+  userId    String
+  functieId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  functie Functie @relation(fields: [functieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, functieId])
+  @@index([userId])
+  @@index([functieId])
+  @@map("user_functies")
+}
+
+model Kwalificatie {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  userKwalificaties UserKwalificatie[]
+
+  @@map("kwalificaties")
+}
+
+model UserKwalificatie {
+  id             String @id @default(cuid())
+  userId         String
+  kwalificatieId String
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kwalificatie Kwalificatie @relation(fields: [kwalificatieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kwalificatieId])
+  @@index([userId])
+  @@index([kwalificatieId])
+  @@map("user_kwalificaties")
 }
 
 model Toeslag {

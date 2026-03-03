@@ -30,6 +30,7 @@ const navigation = [
   { name: 'Beschikbaarheid', employeeName: 'Mijn Beschikbaarheid', href: '/availability', icon: ClockIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Medewerkers', employeeName: 'Medewerkers', href: '/employees', icon: UsersIcon, roles: ['ADMIN'] },
   { name: 'Functies', employeeName: 'Functies', href: '/functies', icon: TagIcon, roles: ['ADMIN'] },
+  { name: 'Kwalificaties', employeeName: 'Kwalificaties', href: '/kwalificaties', icon: TagIcon, roles: ['ADMIN'] },
   { name: 'Toeslagen', employeeName: 'Toeslagen', href: '/toeslagen', icon: CurrencyEuroIcon, roles: ['ADMIN'] },
   { name: 'Berichten', employeeName: 'Berichten', href: '/berichten', icon: ChatBubbleLeftRightIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Rapportages', employeeName: 'Rapportages', href: '/admin/reports', icon: DocumentChartBarIcon, roles: ['ADMIN', 'MANAGER'] },

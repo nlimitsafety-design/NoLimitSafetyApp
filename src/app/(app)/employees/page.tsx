@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useEmployees, useFuncties } from '@/lib/swr';
+import { useEmployees, useFuncties, useKwalificaties } from '@/lib/swr';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -11,7 +11,7 @@ import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Table from '@/components/ui/Table';
 import { formatCurrency, ROLES } from '@/lib/utils';
-import { PlusIcon, MagnifyingGlassIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, MagnifyingGlassIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 interface Employee {
@@ -23,12 +23,15 @@ interface Employee {
   hourlyRate: number;
   active: boolean;
   createdAt: string;
+  functies?: { id: string; name: string; color: string }[];
+  kwalificaties?: { id: string; name: string }[];
 }
 
 export default function EmployeesPage() {
   const { data: session } = useSession();
   const { data: employees = [], isLoading: loading, mutate } = useEmployees();
   const { data: functies = [] } = useFuncties();
+  const { data: kwalificaties = [] } = useKwalificaties();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -42,14 +45,15 @@ export default function EmployeesPage() {
     hourlyRate: 25,
     active: true,
     password: '',
-    functieId: '',
+    functieIds: [] as string[],
+    kwalificatieIds: [] as string[],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   function openCreate() {
     setEditingEmployee(null);
-    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', hourlyRate: 25, active: true, password: '', functieId: '' });
+    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', hourlyRate: 25, active: true, password: '', functieIds: [], kwalificatieIds: [] });
     setFormErrors({});
     setModalOpen(true);
   }
@@ -64,7 +68,8 @@ export default function EmployeesPage() {
       hourlyRate: emp.hourlyRate,
       active: emp.active,
       password: '',
-      functieId: (emp as any).functieId || '',
+      functieIds: emp.functies?.map(f => f.id) || [],
+      kwalificatieIds: emp.kwalificaties?.map(k => k.id) || [],
     });
     setFormErrors({});
     setModalOpen(true);
@@ -79,7 +84,7 @@ export default function EmployeesPage() {
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}` : '/api/employees';
       const method = editingEmployee ? 'PUT' : 'POST';
 
-      const body: any = { ...form, hourlyRate: Number(form.hourlyRate), functieId: form.functieId || null };
+      const body: any = { ...form, hourlyRate: Number(form.hourlyRate) };
       if (!body.password) delete body.password;
 
       const res = await fetch(url, {
@@ -145,18 +150,41 @@ export default function EmployeesPage() {
       },
     },
     {
-      key: 'functie',
-      header: 'Functie',
+      key: 'functies',
+      header: 'Functies',
       render: (emp: Employee) => {
-        const f = (emp as any).functie;
-        if (!f) return <span className="text-gray-300">—</span>;
+        const fs = emp.functies || [];
+        if (fs.length === 0) return <span className="text-gray-300">—</span>;
         return (
-          <span
-            className="inline-flex items-center font-medium rounded-full px-2 py-0.5 text-xs border"
-            style={{ backgroundColor: f.color + '20', color: f.color, borderColor: f.color + '40' }}
-          >
-            {f.name}
-          </span>
+          <div className="flex flex-wrap gap-1">
+            {fs.map(f => (
+              <span
+                key={f.id}
+                className="inline-flex items-center font-medium rounded-full px-2 py-0.5 text-xs border"
+                style={{ backgroundColor: f.color + '20', color: f.color, borderColor: f.color + '40' }}
+              >
+                {f.name}
+              </span>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: 'kwalificaties',
+      header: 'Kwalificaties',
+      hideOnMobile: true,
+      render: (emp: Employee) => {
+        const ks = emp.kwalificaties || [];
+        if (ks.length === 0) return <span className="text-gray-300">—</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {ks.map(k => (
+              <span key={k.id} className="inline-flex items-center font-medium rounded-full px-2 py-0.5 text-xs border bg-gray-100 text-gray-600 border-gray-200">
+                {k.name}
+              </span>
+            ))}
+          </div>
         );
       },
     },
@@ -291,12 +319,6 @@ export default function EmployeesPage() {
                 options={ROLES.map(r => ({ value: r.value, label: r.label }))}
                 error={formErrors.role}
               />
-              <Select
-                label="Functie"
-                value={form.functieId}
-                onChange={(e) => setForm({ ...form, functieId: e.target.value })}
-                options={[{ value: '', label: 'Geen functie' }, ...functies.map((f: any) => ({ value: f.id, label: f.name }))]}
-              />
               <Input
                 label={editingEmployee ? 'Nieuw wachtwoord (optioneel)' : 'Wachtwoord'}
                 type="password"
@@ -306,6 +328,79 @@ export default function EmployeesPage() {
                 required={!editingEmployee}
                 placeholder={editingEmployee ? 'Laat leeg om niet te wijzigen' : 'Minimaal 6 tekens'}
               />
+            </div>
+
+            {/* Functies multi-select */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Functies</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {form.functieIds.map(fId => {
+                  const f = functies.find((fn: any) => fn.id === fId);
+                  if (!f) return null;
+                  return (
+                    <span
+                      key={fId}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border"
+                      style={{ backgroundColor: f.color + '20', color: f.color, borderColor: f.color + '40' }}
+                    >
+                      {f.name}
+                      <button type="button" onClick={() => setForm({ ...form, functieIds: form.functieIds.filter(id => id !== fId) })} className="hover:opacity-70">
+                        <XMarkIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-100 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value && !form.functieIds.includes(e.target.value)) {
+                    setForm({ ...form, functieIds: [...form.functieIds, e.target.value] });
+                  }
+                }}
+              >
+                <option value="">+ Functie toevoegen...</option>
+                {functies.filter((f: any) => !form.functieIds.includes(f.id)).map((f: any) => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Kwalificaties multi-select */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Kwalificaties</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {form.kwalificatieIds.map(kId => {
+                  const k = kwalificaties.find((kw: any) => kw.id === kId);
+                  if (!k) return null;
+                  return (
+                    <span
+                      key={kId}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium border bg-blue-50 text-blue-600 border-blue-200"
+                    >
+                      {k.name}
+                      <button type="button" onClick={() => setForm({ ...form, kwalificatieIds: form.kwalificatieIds.filter(id => id !== kId) })} className="hover:opacity-70">
+                        <XMarkIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+              <select
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-gray-100 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                value=""
+                onChange={(e) => {
+                  if (e.target.value && !form.kwalificatieIds.includes(e.target.value)) {
+                    setForm({ ...form, kwalificatieIds: [...form.kwalificatieIds, e.target.value] });
+                  }
+                }}
+              >
+                <option value="">+ Kwalificatie toevoegen...</option>
+                {kwalificaties.filter((k: any) => !form.kwalificatieIds.includes(k.id)).map((k: any) => (
+                  <option key={k.id} value={k.id}>{k.name}</option>
+                ))}
+              </select>
             </div>
 
             {editingEmployee && (

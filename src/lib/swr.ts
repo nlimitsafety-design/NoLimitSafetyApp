@@ -91,6 +91,11 @@ export function useFuncties(showAll = false) {
   return useSWR<any[]>(key, fetcher, swrDefaults);
 }
 
+export function useKwalificaties(showAll = false) {
+  const key = showAll ? '/api/kwalificaties?all=true' : '/api/kwalificaties';
+  return useSWR<any[]>(key, fetcher, swrDefaults);
+}
+
 export function useToeslagen(showAll = false) {
   const key = showAll ? '/api/toeslagen?all=true' : '/api/toeslagen';
   return useSWR<any[]>(key, fetcher, swrDefaults);

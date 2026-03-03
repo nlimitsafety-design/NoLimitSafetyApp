@@ -13,7 +13,8 @@ export const employeeSchema = z.object({
   hourlyRate: z.number().min(0, 'Tarief mag niet negatief zijn'),
   active: z.boolean().default(true),
   password: z.string().min(6, 'Wachtwoord moet minimaal 6 tekens bevatten').optional(),
-  functieId: z.string().nullable().optional(),
+  functieIds: z.array(z.string()).optional(),
+  kwalificatieIds: z.array(z.string()).optional(),
 });
 
 export const availabilitySchema = z.object({

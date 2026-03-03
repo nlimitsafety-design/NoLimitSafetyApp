@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name, email, phone, role, hourlyRate, active, password, functieId } = parsed.data;
+    const { name, email, phone, role, hourlyRate, active, password, functieIds, kwalificatieIds } = parsed.data;
 
     // Check duplicate email (exclude current user)
     if (email) {
@@ -39,9 +39,29 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (role !== undefined) updateData.role = role;
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate;
     if (active !== undefined) updateData.active = active;
-    if (functieId !== undefined) updateData.functieId = functieId || null;
     if (password) {
       updateData.passwordHash = await bcrypt.hash(password, 12);
+    }
+
+    // Handle functies many-to-many
+    if (functieIds !== undefined) {
+      // Delete existing and recreate
+      await prisma.userFunctie.deleteMany({ where: { userId: params.id } });
+      if (functieIds && functieIds.length > 0) {
+        await prisma.userFunctie.createMany({
+          data: functieIds.map((fId: string) => ({ userId: params.id, functieId: fId })),
+        });
+      }
+    }
+
+    // Handle kwalificaties many-to-many
+    if (kwalificatieIds !== undefined) {
+      await prisma.userKwalificatie.deleteMany({ where: { userId: params.id } });
+      if (kwalificatieIds && kwalificatieIds.length > 0) {
+        await prisma.userKwalificatie.createMany({
+          data: kwalificatieIds.map((kId: string) => ({ userId: params.id, kwalificatieId: kId })),
+        });
+      }
     }
 
     const user = await prisma.user.update({
@@ -55,12 +75,24 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         role: true,
         hourlyRate: true,
         active: true,
-        functieId: true,
-        functie: { select: { id: true, name: true, color: true } },
+        userFuncties: {
+          select: { functie: { select: { id: true, name: true, color: true } } },
+        },
+        userKwalificaties: {
+          select: { kwalificatie: { select: { id: true, name: true } } },
+        },
       },
     });
 
-    return NextResponse.json(user);
+    const result = {
+      ...user,
+      functies: user.userFuncties.map(uf => uf.functie),
+      kwalificaties: user.userKwalificaties.map(uk => uk.kwalificatie),
+      userFuncties: undefined,
+      userKwalificaties: undefined,
+    };
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Update employee error:', error);
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });

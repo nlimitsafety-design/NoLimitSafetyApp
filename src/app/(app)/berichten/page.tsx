@@ -70,7 +70,7 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
     (e: any) =>
       e.id !== currentUserId &&
       e.name.toLowerCase().includes(search.toLowerCase()) &&
-      (!activeFunctie || e.functieId === activeFunctie)
+      (!activeFunctie || (e.functies || []).some((f: any) => f.id === activeFunctie))
   );
 
   const isGroup = selectedIds.length > 1;
@@ -199,8 +199,8 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{emp.name}</p>
                   <p className="text-xs text-gray-400 truncate">
-                    {emp.functie ? (
-                      <span style={{ color: emp.functie.color }}>{emp.functie.name}</span>
+                    {emp.functies && emp.functies.length > 0 ? (
+                      <span>{emp.functies.map((f: any) => <span key={f.id} style={{ color: f.color }}>{f.name}</span>).reduce((prev: any, curr: any) => [prev, ', ', curr])}</span>
                     ) : emp.email}
                   </p>
                 </div>
