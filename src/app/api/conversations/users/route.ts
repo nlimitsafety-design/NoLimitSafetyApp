@@ -1,0 +1,25 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requireRole } from '@/lib/server-auth';
+
+export async function GET() {
+  const { error } = await requireRole(['ADMIN', 'MANAGER', 'EMPLOYEE']);
+  if (error) return error;
+
+  try {
+    const users = await prisma.user.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    return NextResponse.json(users);
+  } catch (e) {
+    return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
+  }
+}

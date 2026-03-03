@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useConversations, useConversation, useEmployees } from '@/lib/swr';
+import { useConversations, useConversation } from '@/lib/swr';
+import useSWR from 'swr';
 import Button from '@/components/ui/Button';
 import {
   ChatBubbleLeftRightIcon,
@@ -49,7 +50,8 @@ function UserAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 
 
 // ── New Conversation Modal ──
 function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
-  const { data: employees } = useEmployees();
+  const fetcher = (url: string) => fetch(url).then(r => r.json());
+  const { data: users } = useSWR<any[]>('/api/conversations/users', fetcher);
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [groupName, setGroupName] = useState('');
@@ -57,8 +59,8 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
 
-  const filtered = (employees || []).filter(
-    (e: any) => e.id !== currentUserId && e.active && e.name.toLowerCase().includes(search.toLowerCase())
+  const filtered = (users || []).filter(
+    (e: any) => e.id !== currentUserId && e.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const isGroup = selectedIds.length > 1;
@@ -108,7 +110,7 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
           {selectedIds.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {selectedIds.map((id) => {
-                const emp = (employees || []).find((e: any) => e.id === id);
+                const emp = (users || []).find((e: any) => e.id === id);
                 return (
                   <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
                     {emp?.name || id}
