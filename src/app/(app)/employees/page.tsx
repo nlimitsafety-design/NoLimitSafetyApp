@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useEmployees } from '@/lib/swr';
+import { useEmployees, useFuncties } from '@/lib/swr';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -28,6 +28,7 @@ interface Employee {
 export default function EmployeesPage() {
   const { data: session } = useSession();
   const { data: employees = [], isLoading: loading, mutate } = useEmployees();
+  const { data: functies = [] } = useFuncties();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -41,13 +42,14 @@ export default function EmployeesPage() {
     hourlyRate: 25,
     active: true,
     password: '',
+    functieId: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   function openCreate() {
     setEditingEmployee(null);
-    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', hourlyRate: 25, active: true, password: '' });
+    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', hourlyRate: 25, active: true, password: '', functieId: '' });
     setFormErrors({});
     setModalOpen(true);
   }
@@ -62,6 +64,7 @@ export default function EmployeesPage() {
       hourlyRate: emp.hourlyRate,
       active: emp.active,
       password: '',
+      functieId: (emp as any).functieId || '',
     });
     setFormErrors({});
     setModalOpen(true);
@@ -76,7 +79,7 @@ export default function EmployeesPage() {
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}` : '/api/employees';
       const method = editingEmployee ? 'PUT' : 'POST';
 
-      const body: any = { ...form, hourlyRate: Number(form.hourlyRate) };
+      const body: any = { ...form, hourlyRate: Number(form.hourlyRate), functieId: form.functieId || null };
       if (!body.password) delete body.password;
 
       const res = await fetch(url, {
@@ -139,6 +142,22 @@ export default function EmployeesPage() {
       render: (emp: Employee) => {
         const roleLabel = ROLES.find(r => r.value === emp.role)?.label || emp.role;
         return <Badge variant={emp.role === 'ADMIN' ? 'orange' : emp.role === 'MANAGER' ? 'info' : 'default'}>{roleLabel}</Badge>;
+      },
+    },
+    {
+      key: 'functie',
+      header: 'Functie',
+      render: (emp: Employee) => {
+        const f = (emp as any).functie;
+        if (!f) return <span className="text-gray-300">—</span>;
+        return (
+          <span
+            className="inline-flex items-center font-medium rounded-full px-2 py-0.5 text-xs border"
+            style={{ backgroundColor: f.color + '20', color: f.color, borderColor: f.color + '40' }}
+          >
+            {f.name}
+          </span>
+        );
       },
     },
     {
@@ -271,6 +290,12 @@ export default function EmployeesPage() {
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
                 options={ROLES.map(r => ({ value: r.value, label: r.label }))}
                 error={formErrors.role}
+              />
+              <Select
+                label="Functie"
+                value={form.functieId}
+                onChange={(e) => setForm({ ...form, functieId: e.target.value })}
+                options={[{ value: '', label: 'Geen functie' }, ...functies.map((f: any) => ({ value: f.id, label: f.name }))]}
               />
               <Input
                 label={editingEmployee ? 'Nieuw wachtwoord (optioneel)' : 'Wachtwoord'}

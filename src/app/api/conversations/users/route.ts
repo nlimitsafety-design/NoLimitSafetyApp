@@ -14,6 +14,8 @@ export async function GET() {
         name: true,
         email: true,
         role: true,
+        functieId: true,
+        functie: { select: { id: true, name: true, color: true } },
       },
       orderBy: { name: 'asc' },
     });

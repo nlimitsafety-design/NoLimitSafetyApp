@@ -17,9 +17,11 @@ model User {
   role         String         @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
   hourlyRate   Float          @default(0)
   active       Boolean        @default(true)
+  functieId    String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
+  functie                  Functie?       @relation(fields: [functieId], references: [id], onDelete: SetNull)
   availability             Availability[]
   recurringAvailabilities  RecurringAvailability[]
   availabilityExceptions   AvailabilityException[]
@@ -31,6 +33,7 @@ model User {
   sentMessages             Message[]
   createdConversations     Conversation[] @relation("conversationCreator")
 
+  @@index([functieId])
   @@map("users")
 }
 
@@ -160,6 +163,8 @@ model Functie {
   color     String   @default("#f97316") // hex color for badge
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
+
+  users User[]
 
   @@map("functies")
 }

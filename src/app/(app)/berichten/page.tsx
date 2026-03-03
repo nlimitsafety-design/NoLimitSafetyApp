@@ -57,15 +57,20 @@ function UserAvatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 
 function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const fetcher = (url: string) => fetch(url).then(r => r.json());
   const { data: users } = useSWR<any[]>('/api/conversations/users', fetcher);
+  const { data: functies } = useSWR<any[]>('/api/functies', fetcher);
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [groupName, setGroupName] = useState('');
+  const [activeFunctie, setActiveFunctie] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
 
   const filtered = (users || []).filter(
-    (e: any) => e.id !== currentUserId && e.name.toLowerCase().includes(search.toLowerCase())
+    (e: any) =>
+      e.id !== currentUserId &&
+      e.name.toLowerCase().includes(search.toLowerCase()) &&
+      (!activeFunctie || e.functieId === activeFunctie)
   );
 
   const isGroup = selectedIds.length > 1;
@@ -138,6 +143,42 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
           )}
         </div>
 
+        {/* Functie filter chips */}
+        {functies && functies.length > 0 && (
+          <div className="px-4 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
+            <button
+              onClick={() => setActiveFunctie(null)}
+              className={cn(
+                'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                !activeFunctie
+                  ? 'bg-brand-500 text-white border-brand-500'
+                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+              )}
+            >
+              Iedereen
+            </button>
+            {functies.map((f: any) => (
+              <button
+                key={f.id}
+                onClick={() => setActiveFunctie(activeFunctie === f.id ? null : f.id)}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+                  activeFunctie === f.id
+                    ? 'text-white border-transparent'
+                    : 'border-gray-200 hover:opacity-80'
+                )}
+                style={
+                  activeFunctie === f.id
+                    ? { backgroundColor: f.color, borderColor: f.color }
+                    : { backgroundColor: f.color + '15', color: f.color, borderColor: f.color + '30' }
+                }
+              >
+                {f.name}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto">
           {filtered.map((emp: any) => {
             const selected = selectedIds.includes(emp.id);
@@ -157,7 +198,11 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
                 <UserAvatar name={emp.name} size="sm" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{emp.name}</p>
-                  <p className="text-xs text-gray-400">{emp.email}</p>
+                  <p className="text-xs text-gray-400 truncate">
+                    {emp.functie ? (
+                      <span style={{ color: emp.functie.color }}>{emp.functie.name}</span>
+                    ) : emp.email}
+                  </p>
                 </div>
                 {selected && (
                   <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center">

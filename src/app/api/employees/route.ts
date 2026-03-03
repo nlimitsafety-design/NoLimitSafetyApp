@@ -19,6 +19,8 @@ export async function GET() {
         hourlyRate: true,
         active: true,
         createdAt: true,
+        functieId: true,
+        functie: { select: { id: true, name: true, color: true } },
       },
       orderBy: { name: 'asc' },
     });
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name, email, phone, role, hourlyRate, password } = parsed.data;
+    const { name, email, phone, role, hourlyRate, password, functieId } = parsed.data;
 
     // Check duplicate email
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
@@ -68,6 +70,7 @@ export async function POST(req: NextRequest) {
         hourlyRate,
         passwordHash,
         active: true,
+        functieId: functieId || null,
       },
       select: {
         id: true,
@@ -77,6 +80,8 @@ export async function POST(req: NextRequest) {
         role: true,
         hourlyRate: true,
         active: true,
+        functieId: true,
+        functie: { select: { id: true, name: true, color: true } },
       },
     });
 
