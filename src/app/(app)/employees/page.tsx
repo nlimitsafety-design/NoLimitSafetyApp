@@ -173,7 +173,6 @@ export default function EmployeesPage() {
     {
       key: 'kwalificaties',
       header: 'Kwalificaties',
-      hideOnMobile: true,
       render: (emp: Employee) => {
         const ks = emp.kwalificaties || [];
         if (ks.length === 0) return <span className="text-gray-300">—</span>;
