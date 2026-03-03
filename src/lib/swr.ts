@@ -103,3 +103,20 @@ export function useNotifications() {
     revalidateOnFocus: true,
   });
 }
+
+export function useConversations() {
+  return useSWR<any[]>('/api/conversations', fetcher, {
+    ...swrDefaults,
+    refreshInterval: 10000, // Poll every 10s for new messages
+    revalidateOnFocus: true,
+  });
+}
+
+export function useConversation(id: string | null) {
+  const key = id ? `/api/conversations/${id}` : null;
+  return useSWR<any>(key, fetcher, {
+    ...swrDefaults,
+    refreshInterval: 5000, // Poll every 5s when viewing a conversation
+    revalidateOnFocus: true,
+  });
+}

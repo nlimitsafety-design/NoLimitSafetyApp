@@ -18,6 +18,7 @@ import {
   BriefcaseIcon,
   TagIcon,
   CurrencyEuroIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import { useState, useEffect } from 'react';
 import NotificationBell from '@/components/NotificationBell';
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Medewerkers', employeeName: 'Medewerkers', href: '/employees', icon: UsersIcon, roles: ['ADMIN'] },
   { name: 'Functies', employeeName: 'Functies', href: '/functies', icon: TagIcon, roles: ['ADMIN'] },
   { name: 'Toeslagen', employeeName: 'Toeslagen', href: '/toeslagen', icon: CurrencyEuroIcon, roles: ['ADMIN'] },
+  { name: 'Berichten', employeeName: 'Berichten', href: '/berichten', icon: ChatBubbleLeftRightIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
   { name: 'Rapportages', employeeName: 'Rapportages', href: '/admin/reports', icon: DocumentChartBarIcon, roles: ['ADMIN', 'MANAGER'] },
   { name: 'Instellingen', employeeName: 'Instellingen', href: '/settings', icon: Cog6ToothIcon, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
 ];
