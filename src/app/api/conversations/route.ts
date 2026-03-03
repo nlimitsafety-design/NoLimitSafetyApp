@@ -52,6 +52,7 @@ export async function GET() {
         id: m.conversation.id,
         name: m.conversation.name || otherMembers.map((u) => u.name).join(', '),
         isGroup: m.conversation.isGroup,
+        createdBy: m.conversation.createdBy,
         members: m.conversation.members.map((cm) => cm.user),
         lastMessage: lastMessage
           ? {
@@ -120,6 +121,7 @@ export async function POST(req: Request) {
     data: {
       name: isGroup ? name || 'Groepsgesprek' : null,
       isGroup: isGroup || false,
+      createdBy: userId,
       members: {
         create: allMemberIds.map((id: string) => ({
           userId: id,

@@ -14,6 +14,11 @@ import {
   UserGroupIcon,
   MagnifyingGlassIcon,
   XMarkIcon,
+  Cog6ToothIcon,
+  PencilIcon,
+  TrashIcon,
+  UserMinusIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
@@ -267,19 +272,272 @@ function ConversationList({
   );
 }
 
+// ── Group Settings Panel ──
+function GroupSettingsPanel({
+  conversation,
+  onClose,
+  onUpdated,
+  onDeleted,
+}: {
+  conversation: any;
+  onClose: () => void;
+  onUpdated: () => void;
+  onDeleted: () => void;
+}) {
+  const fetcher = (url: string) => fetch(url).then((r) => r.json());
+  const { data: allUsers } = useSWR<any[]>('/api/conversations/users', fetcher);
+  const [editingName, setEditingName] = useState(false);
+  const [name, setName] = useState(conversation.name || '');
+  const [saving, setSaving] = useState(false);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [addSearch, setAddSearch] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const memberIds = conversation.members.map((m: any) => m.id);
+  const availableUsers = (allUsers || []).filter(
+    (u: any) => !memberIds.includes(u.id)
+  );
+  const filteredAvailable = availableUsers.filter((u: any) =>
+    u.name.toLowerCase().includes(addSearch.toLowerCase())
+  );
+
+  async function handleRename() {
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      await fetch(`/api/conversations/${conversation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      setEditingName(false);
+      onUpdated();
+    } catch {} finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleAddMember(userId: string) {
+    setSaving(true);
+    try {
+      await fetch(`/api/conversations/${conversation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ addMemberIds: [userId] }),
+      });
+      onUpdated();
+    } catch {} finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleRemoveMember(userId: string) {
+    setSaving(true);
+    try {
+      await fetch(`/api/conversations/${conversation.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeMemberIds: [userId] }),
+      });
+      onUpdated();
+    } catch {} finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete() {
+    setSaving(true);
+    try {
+      await fetch(`/api/conversations/${conversation.id}`, {
+        method: 'DELETE',
+      });
+      onDeleted();
+    } catch {} finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h3 className="font-semibold text-gray-900">Groepsinstellingen</h3>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {/* Group name */}
+          <div className="p-4 border-b border-gray-100">
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Groepsnaam</label>
+            {editingName ? (
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+                />
+                <button
+                  onClick={handleRename}
+                  disabled={saving || !name.trim()}
+                  className="px-3 py-2 bg-brand-500 text-white text-sm font-medium rounded-lg hover:bg-brand-600 disabled:opacity-50"
+                >
+                  Opslaan
+                </button>
+                <button
+                  onClick={() => { setEditingName(false); setName(conversation.name || ''); }}
+                  className="px-3 py-2 text-gray-500 text-sm font-medium rounded-lg hover:bg-gray-100"
+                >
+                  Annuleer
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-sm font-medium text-gray-900">{conversation.name || 'Groepsgesprek'}</p>
+                <button
+                  onClick={() => setEditingName(true)}
+                  className="p-1.5 text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Members */}
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Deelnemers ({conversation.members.length})
+              </label>
+              <button
+                onClick={() => setShowAddMember(!showAddMember)}
+                className="flex items-center gap-1 text-xs font-medium text-brand-500 hover:text-brand-600 transition-colors"
+              >
+                <UserPlusIcon className="h-3.5 w-3.5" />
+                Toevoegen
+              </button>
+            </div>
+
+            {/* Add member search */}
+            {showAddMember && (
+              <div className="mb-3 p-3 bg-gray-50 rounded-xl">
+                <div className="relative mb-2">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Zoek medewerker..."
+                    value={addSearch}
+                    onChange={(e) => setAddSearch(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
+                    autoFocus
+                  />
+                </div>
+                <div className="max-h-32 overflow-y-auto">
+                  {filteredAvailable.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-2">Geen medewerkers beschikbaar</p>
+                  ) : (
+                    filteredAvailable.map((user: any) => (
+                      <button
+                        key={user.id}
+                        onClick={() => handleAddMember(user.id)}
+                        disabled={saving}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-white rounded-lg transition-colors text-left"
+                      >
+                        <UserAvatar name={user.name} size="sm" />
+                        <span className="text-sm text-gray-700 truncate">{user.name}</span>
+                        <UserPlusIcon className="h-4 w-4 text-brand-500 ml-auto flex-shrink-0" />
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Member list */}
+            <div className="space-y-1">
+              {conversation.members.map((member: any) => (
+                <div key={member.id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
+                  <UserAvatar name={member.name} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{member.name}</p>
+                    <p className="text-xs text-gray-400">
+                      {member.id === conversation.createdBy ? 'Beheerder' : member.role === 'ADMIN' ? 'Administrator' : member.role === 'MANAGER' ? 'Manager' : 'Medewerker'}
+                    </p>
+                  </div>
+                  {member.id !== conversation.createdBy && (
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      disabled={saving}
+                      className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Verwijder uit groep"
+                    >
+                      <UserMinusIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Delete section */}
+        <div className="p-4 border-t border-gray-100">
+          {confirmDelete ? (
+            <div className="space-y-2">
+              <p className="text-sm text-red-600 font-medium">Weet je zeker dat je dit groepsgesprek wilt verwijderen? Alle berichten worden permanent verwijderd.</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="flex-1 px-3 py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 disabled:opacity-50"
+                >
+                  {saving ? 'Verwijderen...' : 'Ja, verwijderen'}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  className="flex-1 px-3 py-2 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-100 border border-gray-200"
+                >
+                  Annuleren
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-red-500 text-sm font-medium rounded-lg hover:bg-red-50 border border-red-200 transition-colors"
+            >
+              <TrashIcon className="h-4 w-4" />
+              Groepsgesprek verwijderen
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Chat View ──
 function ChatView({
   conversationId,
   onBack,
+  onDeleted,
 }: {
   conversationId: string;
   onBack: () => void;
+  onDeleted: () => void;
 }) {
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
   const { data, mutate } = useConversation(conversationId);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -353,6 +611,15 @@ function ChatView({
                   : 'Medewerker'}
           </p>
         </div>
+        {conversation?.isGroup && conversation?.createdBy === currentUserId && (
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-1.5 text-gray-400 hover:text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+            title="Groepsinstellingen"
+          >
+            <Cog6ToothIcon className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -441,6 +708,16 @@ function ChatView({
           <PaperAirplaneIcon className="h-4 w-4" />
         </button>
       </form>
+
+      {/* Group settings panel */}
+      {showSettings && conversation?.isGroup && (
+        <GroupSettingsPanel
+          conversation={conversation}
+          onClose={() => setShowSettings(false)}
+          onUpdated={() => { mutate(); setShowSettings(false); }}
+          onDeleted={onDeleted}
+        />
+      )}
     </div>
   );
 }
@@ -469,6 +746,12 @@ export default function BerichtenPage() {
   function handleBack() {
     setActiveConversation(null);
     router.replace('/berichten', { scroll: false });
+  }
+
+  function handleDeleted() {
+    setActiveConversation(null);
+    router.replace('/berichten', { scroll: false });
+    mutateConversations();
   }
 
   function handleCreated(id: string) {
@@ -516,7 +799,7 @@ export default function BerichtenPage() {
           <div className={cn('flex-1', !activeConversation ? 'hidden lg:flex' : 'flex')}>
             {activeConversation ? (
               <div className="flex-1 flex flex-col">
-                <ChatView conversationId={activeConversation} onBack={handleBack} />
+                <ChatView conversationId={activeConversation} onBack={handleBack} onDeleted={handleDeleted} />
               </div>
             ) : (
               <div className="flex-1 flex items-center justify-center bg-gray-50/30">

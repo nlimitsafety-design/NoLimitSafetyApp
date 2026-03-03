@@ -66,6 +66,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       id: conversation!.id,
       name: conversation!.name,
       isGroup: conversation!.isGroup,
+      createdBy: conversation!.createdBy,
       members: conversation!.members.map((m) => m.user),
     },
     messages: messages.reverse(), // oldest first
@@ -147,4 +148,116 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   } catch {}
 
   return NextResponse.json(message, { status: 201 });
+}
+
+// PATCH /api/conversations/[id] — update group chat (name, add/remove members)
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  const { error, session } = await requireAuth();
+  if (error) return error;
+  const userId = (session!.user as any).id;
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: params.id },
+    include: { members: true },
+  });
+
+  if (!conversation) {
+    return NextResponse.json({ error: 'Gesprek niet gevonden' }, { status: 404 });
+  }
+
+  if (!conversation.isGroup) {
+    return NextResponse.json({ error: 'Alleen groepsgesprekken kunnen worden aangepast' }, { status: 400 });
+  }
+
+  if (conversation.createdBy !== userId) {
+    return NextResponse.json({ error: 'Alleen de maker van het groepsgesprek kan dit aanpassen' }, { status: 403 });
+  }
+
+  const body = await req.json();
+  const { name, addMemberIds, removeMemberIds } = body;
+
+  // Update name
+  if (name !== undefined) {
+    await prisma.conversation.update({
+      where: { id: params.id },
+      data: { name: name || 'Groepsgesprek' },
+    });
+  }
+
+  // Add members
+  if (addMemberIds && Array.isArray(addMemberIds) && addMemberIds.length > 0) {
+    const existingIds = conversation.members.map((m) => m.userId);
+    const newIds = addMemberIds.filter((id: string) => !existingIds.includes(id));
+    if (newIds.length > 0) {
+      await prisma.conversationMember.createMany({
+        data: newIds.map((id: string) => ({
+          conversationId: params.id,
+          userId: id,
+        })),
+      });
+    }
+  }
+
+  // Remove members (cannot remove the creator)
+  if (removeMemberIds && Array.isArray(removeMemberIds) && removeMemberIds.length > 0) {
+    const idsToRemove = removeMemberIds.filter((id: string) => id !== conversation.createdBy);
+    if (idsToRemove.length > 0) {
+      await prisma.conversationMember.deleteMany({
+        where: {
+          conversationId: params.id,
+          userId: { in: idsToRemove },
+        },
+      });
+    }
+  }
+
+  // Return updated conversation
+  const updated = await prisma.conversation.findUnique({
+    where: { id: params.id },
+    include: {
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true, role: true } },
+        },
+      },
+    },
+  });
+
+  return NextResponse.json({
+    id: updated!.id,
+    name: updated!.name,
+    isGroup: updated!.isGroup,
+    createdBy: updated!.createdBy,
+    members: updated!.members.map((m) => m.user),
+  });
+}
+
+// DELETE /api/conversations/[id] — delete a group conversation
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const { error, session } = await requireAuth();
+  if (error) return error;
+  const userId = (session!.user as any).id;
+
+  const conversation = await prisma.conversation.findUnique({
+    where: { id: params.id },
+  });
+
+  if (!conversation) {
+    return NextResponse.json({ error: 'Gesprek niet gevonden' }, { status: 404 });
+  }
+
+  if (!conversation.isGroup) {
+    return NextResponse.json({ error: 'Alleen groepsgesprekken kunnen worden verwijderd' }, { status: 400 });
+  }
+
+  if (conversation.createdBy !== userId) {
+    return NextResponse.json({ error: 'Alleen de maker van het groepsgesprek kan dit verwijderen' }, { status: 403 });
+  }
+
+  // Cascade deletes members and messages
+  await prisma.conversation.delete({
+    where: { id: params.id },
+  });
+
+  return NextResponse.json({ success: true });
 }
