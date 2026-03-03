@@ -358,7 +358,7 @@ export default function AvailabilityPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || 'Fout bij kopiÃ«ren');
+        toast.error(data.error || 'Fout bij kopiëren');
         return;
       }
 
@@ -370,7 +370,7 @@ export default function AvailabilityPage() {
       mutateExceptions();
     } catch (err) {
       console.error('Copy week error:', err);
-      toast.error('Fout bij kopiÃ«ren');
+      toast.error('Fout bij kopiëren');
     } finally {
       setCopying(false);
     }
@@ -994,7 +994,7 @@ export default function AvailabilityPage() {
             <Button variant="ghost" onClick={() => setCopyModal(false)}>Annuleren</Button>
             <Button onClick={handleCopyWeek} loading={copying} disabled={exceptions.length === 0}>
               <DocumentDuplicateIcon className="h-4 w-4 mr-1" />
-              KopiÃ«ren
+              Kopiëren
             </Button>
           </div>
         </div>
@@ -1010,7 +1010,7 @@ export default function AvailabilityPage() {
         <div className="space-y-4">
           <div className="bg-brand-500/10 border border-brand-500/20 rounded-lg p-3">
             <p className="text-sm text-brand-300">
-              Vul in Ã©Ã©n keer je beschikbaarheid in voor{' '}
+              Vul in één keer je beschikbaarheid in voor{' '}
               {fillMonthForm.includeWeekends ? 'alle dagen' : 'alle werkdagen'} van{' '}
               <strong className="capitalize">{format(monthStart, 'MMMM yyyy', { locale: nl })}</strong>.
             </p>

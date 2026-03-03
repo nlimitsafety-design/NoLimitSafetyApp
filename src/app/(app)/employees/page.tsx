@@ -275,7 +275,7 @@ export default function EmployeesPage() {
                 placeholder="+31 6 12345678"
               />
               <Input
-                label="Uurtarief (â‚¬)"
+                label="Uurtarief (€)"
                 type="number"
                 step="0.50"
                 min="0"

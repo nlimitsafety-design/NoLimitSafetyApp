@@ -91,7 +91,7 @@ export default function ReportsPage() {
         a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
-        toast.success('CSV geÃ«xporteerd');
+        toast.success('CSV geëxporteerd');
       } else {
         toast.error('CSV export mislukt');
       }
@@ -118,7 +118,7 @@ export default function ReportsPage() {
         a.download = `NoLimitSafety_Facturatie_${startDate}_${endDate}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
-        toast.success('Excel geÃ«xporteerd');
+        toast.success('Excel geëxporteerd');
       } else {
         toast.error('Excel export mislukt');
       }
@@ -328,7 +328,7 @@ export default function ReportsPage() {
                               <td className="py-2 pr-4 text-brand-500">{s.hours.toFixed(1)}</td>
                               <td className="py-2 pr-4 hidden sm:table-cell">
                                 {(s.surchargeAmount || 0) > 0 ? (
-                                  <span className="text-yellow-400" title={s.surchargeDetails?.map((d: any) => `${d.ruleName}: ${d.hours.toFixed(1)}u Ã— â‚¬${d.extraRate.toFixed(2)} = â‚¬${d.amount.toFixed(2)}`).join('\n')}>
+                                  <span className="text-yellow-400" title={s.surchargeDetails?.map((d: any) => `${d.ruleName}: ${d.hours.toFixed(1)}u × €${d.extraRate.toFixed(2)} = €${d.amount.toFixed(2)}`).join('\n')}>
                                     {formatCurrency(s.surchargeAmount)}
                                   </span>
                                 ) : (

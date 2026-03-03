@@ -787,7 +787,7 @@ export default function PlanningPage() {
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-gray-500">
                     {form.employeeIds.length === 0
-                      ? 'Selecteer minimaal Ã©Ã©n medewerker'
+                      ? 'Selecteer minimaal één medewerker'
                       : `${form.employeeIds.length} medewerker${form.employeeIds.length !== 1 ? 's' : ''} geselecteerd`}
                   </p>
                   {form.employeeIds.length > 0 && (

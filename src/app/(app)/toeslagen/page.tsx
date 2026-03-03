@@ -337,11 +337,11 @@ export default function ToeslagenPage() {
             )}
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-400">
-                Voorbeeld: Bij een uurtarief van â‚¬15,00 en percentage van {newPercentage}% wordt het tarief{' '}
+                Voorbeeld: Bij een uurtarief van €15,00 en percentage van {newPercentage}% wordt het tarief{' '}
                 <span className="text-brand-500 font-semibold">
-                  â‚¬{(15 * newPercentage / 100).toFixed(2)}
+                  €{(15 * newPercentage / 100).toFixed(2)}
                 </span>{' '}
-                ({newPercentage - 100}% extra = â‚¬{(15 * (newPercentage - 100) / 100).toFixed(2)} toeslag per uur)
+                ({newPercentage - 100}% extra = €{(15 * (newPercentage - 100) / 100).toFixed(2)} toeslag per uur)
               </p>
             </div>
             <div className="flex gap-2 pt-2">
