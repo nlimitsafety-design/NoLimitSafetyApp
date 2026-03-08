@@ -27,7 +27,7 @@ export default function SettingsPage() {
   const { data: profile, isLoading: profileLoading, mutate: mutateProfile } = useProfile();
 
   // Profile form state
-  const [profileForm, setProfileForm] = useState({ name: '', phone: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', phone: '', email: '' });
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -39,7 +39,7 @@ export default function SettingsPage() {
   // Sync form when profile loads
   useEffect(() => {
     if (profile) {
-      setProfileForm({ name: profile.name, phone: profile.phone || '' });
+      setProfileForm({ name: profile.name, phone: profile.phone || '', email: profile.email || '' });
     }
   }, [profile]);
 
@@ -47,6 +47,10 @@ export default function SettingsPage() {
     e.preventDefault();
     if (!profileForm.name.trim()) {
       toast.error('Naam is verplicht');
+      return;
+    }
+    if (!profileForm.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profileForm.email)) {
+      toast.error('Voer een geldig e-mailadres in');
       return;
     }
     setProfileSaving(true);
@@ -152,6 +156,13 @@ export default function SettingsPage() {
                 required
               />
               <Input
+                label="E-mail"
+                type="email"
+                value={profileForm.email}
+                onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                required
+              />
+              <Input
                 label="Telefoon"
                 type="tel"
                 value={profileForm.phone}
@@ -159,9 +170,6 @@ export default function SettingsPage() {
                 placeholder="+31 6 12345678"
               />
               <div className="pt-2">
-                <p className="text-sm text-gray-500 mb-1">
-                  <span className="text-gray-400 font-medium">E-mail:</span> {profile?.email}
-                </p>
                 <p className="text-sm text-gray-500">
                   <span className="text-gray-400 font-medium">Rol:</span>{' '}
                   {profile?.role === 'ADMIN' ? 'Administrator' : profile?.role === 'MANAGER' ? 'Manager' : 'Medewerker'}
