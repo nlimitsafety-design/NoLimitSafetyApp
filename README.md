@@ -96,7 +96,7 @@ npm run start
 | Admin | admin@securityapp.nl | Admin123! |
 | Medewerker | pieter@securityapp.nl | Welkom123! |
 | Medewerker | maria@securityapp.nl | Welkom123! |
-| Manager | kees@securityapp.nl | Welkom123! |
+| Manager | info@nolimitsafety.nl | Welkom123! |
 
 ## Projectstructuur
 
