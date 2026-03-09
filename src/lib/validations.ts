@@ -56,6 +56,8 @@ export const shiftSchema = z.object({
   note: z.string().optional(),
   status: z.enum(['CONCEPT', 'OPEN', 'TOEGEWEZEN', 'BEVESTIGD', 'AFGEROND']).default('CONCEPT'),
   employeeIds: z.array(z.string()).default([]),
+  repeatUntil: z.string().optional(),
+  repeatDays: z.array(z.number().int().min(0).max(6)).optional(),
 }).refine(
   (data) => data.status === 'OPEN' || data.employeeIds.length > 0,
   { message: 'Minimaal één medewerker toewijzen (tenzij open dienst)', path: ['employeeIds'] }

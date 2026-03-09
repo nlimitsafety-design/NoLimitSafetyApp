@@ -118,11 +118,17 @@ export default function PlanningPage() {
     status: 'CONCEPT',
     employeeIds: [] as string[],
   });
+  const [repeatEnabled, setRepeatEnabled] = useState(false);
+  const [repeatUntil, setRepeatUntil] = useState('');
+  const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
 
   function openCreateShift(dateStr?: string) {
     setSelectedShift(null);
     setWarnings([]);
+    setRepeatEnabled(false);
+    setRepeatUntil('');
+    setRepeatDays([]);
     setForm({
       date: dateStr || format(new Date(), 'yyyy-MM-dd'),
       startTime: '08:00',
@@ -193,10 +199,14 @@ export default function PlanningPage() {
       const url = selectedShift ? `/api/shifts/${selectedShift.id}` : '/api/shifts';
       const method = selectedShift ? 'PUT' : 'POST';
 
+      const payload = !selectedShift && repeatEnabled && repeatUntil && repeatDays.length > 0
+        ? { ...form, repeatUntil, repeatDays }
+        : form;
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -205,7 +215,8 @@ export default function PlanningPage() {
         return;
       }
 
-      toast.success(selectedShift ? 'Dienst bijgewerkt' : 'Dienst aangemaakt');
+      const bulkCount = !selectedShift && repeatEnabled ? 'Diensten aangemaakt' : undefined;
+      toast.success(selectedShift ? 'Dienst bijgewerkt' : (bulkCount || 'Dienst aangemaakt'));
       setModalOpen(false);
       mutateShifts();
     } catch {
@@ -667,6 +678,52 @@ export default function PlanningPage() {
                 onChange={(e) => setForm({ ...form, note: e.target.value })}
                 placeholder="Extra informatie over deze dienst..."
               />
+
+              {/* Bulk planning */}
+              {!selectedShift && (
+                <div className="border border-gray-700 rounded-lg p-3 space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={repeatEnabled}
+                      onChange={(e) => setRepeatEnabled(e.target.checked)}
+                      className="rounded border-gray-600 bg-gray-800 text-primary-500 focus:ring-primary-500"
+                    />
+                    Herhalen (weekplanning)
+                  </label>
+                  {repeatEnabled && (
+                    <>
+                      <Input
+                        label="Herhalen tot en met"
+                        type="date"
+                        value={repeatUntil}
+                        onChange={(e) => setRepeatUntil(e.target.value)}
+                        min={form.date}
+                        required={repeatEnabled}
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-300 block mb-1.5">Dagen</span>
+                        <div className="flex flex-wrap gap-2">
+                          {['Zo','Ma','Di','Wo','Do','Vr','Za'].map((label, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setRepeatDays(prev => prev.includes(idx) ? prev.filter(d => d !== idx) : [...prev, idx])}
+                              className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
+                                repeatDays.includes(idx)
+                                  ? 'bg-primary-600 text-white'
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* OPEN shift info or Employee selection */}
               {form.status === 'OPEN' ? (

@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
       where.shiftUsers = { some: { userId: employeeId } };
     }
 
-    const [shifts, toeslagRules] = await Promise.all([
+    const [shifts, toeslagRules, functies] = await Promise.all([
       prisma.shift.findMany({
         where,
         include: {
@@ -72,7 +72,16 @@ export async function GET(req: NextRequest) {
         where: { active: true },
         orderBy: { sortOrder: 'asc' },
       }),
+      prisma.functie.findMany({
+        select: { name: true, hourlyRate: true },
+      }),
     ]);
+
+    // Build functie tarief lookup
+    const functieTarief = new Map<string, number>();
+    for (const f of functies) {
+      if (f.hourlyRate > 0) functieTarief.set(f.name, f.hourlyRate);
+    }
 
     const rules: ToeslagRule[] = toeslagRules.map((t) => ({
       id: t.id,
@@ -200,9 +209,10 @@ export async function GET(req: NextRequest) {
       let shiftBaseTotal = 0;
       let shiftSurchargeTotal = 0;
       for (const su of relevantUsers) {
+        const effectiveRate = functieTarief.get(shift.type) || (su as any).user.hourlyRate;
         const costResult = calculateShiftCostWithToeslagen(
           hours,
-          (su as any).user.hourlyRate,
+          effectiveRate,
           toeslagResult.breakdowns,
         );
         shiftBaseTotal += costResult.baseAmount;

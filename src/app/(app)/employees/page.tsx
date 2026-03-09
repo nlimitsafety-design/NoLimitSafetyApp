@@ -10,7 +10,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import Modal from '@/components/ui/Modal';
 import Table from '@/components/ui/Table';
-import { formatCurrency, ROLES } from '@/lib/utils';
+import { ROLES } from '@/lib/utils';
 import { PlusIcon, MagnifyingGlassIcon, PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
@@ -42,7 +42,6 @@ export default function EmployeesPage() {
     email: '',
     phone: '',
     role: 'EMPLOYEE',
-    hourlyRate: 25,
     active: true,
     password: '',
     functieIds: [] as string[],
@@ -53,7 +52,7 @@ export default function EmployeesPage() {
 
   function openCreate() {
     setEditingEmployee(null);
-    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', hourlyRate: 25, active: true, password: '', functieIds: [], kwalificatieIds: [] });
+    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', active: true, password: '', functieIds: [], kwalificatieIds: [] });
     setFormErrors({});
     setModalOpen(true);
   }
@@ -65,7 +64,6 @@ export default function EmployeesPage() {
       email: emp.email,
       phone: emp.phone || '',
       role: emp.role,
-      hourlyRate: emp.hourlyRate,
       active: emp.active,
       password: '',
       functieIds: emp.functies?.map(f => f.id) || [],
@@ -84,7 +82,7 @@ export default function EmployeesPage() {
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}` : '/api/employees';
       const method = editingEmployee ? 'PUT' : 'POST';
 
-      const body: any = { ...form, hourlyRate: Number(form.hourlyRate) };
+      const body: any = { ...form };
       if (!body.password) delete body.password;
 
       const res = await fetch(url, {
@@ -187,12 +185,7 @@ export default function EmployeesPage() {
         );
       },
     },
-    {
-      key: 'hourlyRate',
-      header: 'Tarief',
-      hideOnMobile: true,
-      render: (emp: Employee) => <span className="text-brand-500 font-medium">{formatCurrency(emp.hourlyRate)}/u</span>,
-    },
+
     {
       key: 'active',
       header: 'Status',
@@ -300,16 +293,6 @@ export default function EmployeesPage() {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 error={formErrors.phone}
                 placeholder="+31 6 12345678"
-              />
-              <Input
-                label="Uurtarief (€)"
-                type="number"
-                step="0.50"
-                min="0"
-                value={form.hourlyRate}
-                onChange={(e) => setForm({ ...form, hourlyRate: parseFloat(e.target.value) || 0 })}
-                error={formErrors.hourlyRate}
-                required
               />
               <Select
                 label="Rol"

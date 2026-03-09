@@ -35,8 +35,10 @@ export default function FunctiesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState('#f97316');
+  const [newHourlyRate, setNewHourlyRate] = useState('');
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState('');
+  const [editHourlyRate, setEditHourlyRate] = useState('');
   const [saving, setSaving] = useState(false);
 
   const isAdmin = (session?.user as any)?.role === 'ADMIN';
@@ -51,12 +53,13 @@ export default function FunctiesPage() {
       const res = await fetch('/api/functies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName.trim(), color: newColor }),
+        body: JSON.stringify({ name: newName.trim(), color: newColor, hourlyRate: parseFloat(newHourlyRate) || 0 }),
       });
       if (res.ok) {
         toast.success('Functie aangemaakt');
         setNewName('');
         setNewColor('#f97316');
+        setNewHourlyRate('');
         setCreating(false);
         mutate();
       } else {
@@ -80,7 +83,7 @@ export default function FunctiesPage() {
       const res = await fetch(`/api/functies/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: editName.trim(), color: editColor }),
+        body: JSON.stringify({ name: editName.trim(), color: editColor, hourlyRate: parseFloat(editHourlyRate) || 0 }),
       });
       if (res.ok) {
         toast.success('Functie bijgewerkt');
@@ -200,6 +203,15 @@ export default function FunctiesPage() {
                 {newName || 'Functienaam'}
               </span>
             </div>
+            <Input
+              label="Uurtarief (€)"
+              type="number"
+              min="0"
+              step="0.01"
+              value={newHourlyRate}
+              onChange={(e) => setNewHourlyRate(e.target.value)}
+              placeholder="Bijv. 25.00"
+            />
             <div className="flex gap-2 pt-2">
               <Button onClick={handleCreate} loading={saving} size="sm">
                 <CheckIcon className="h-4 w-4 mr-1" />
@@ -230,13 +242,22 @@ export default function FunctiesPage() {
             {activeFuncties.map((f: any) => (
               <div key={f.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                 {editingId === f.id ? (
-                  <div className="flex-1 flex items-center gap-3">
+                  <div className="flex-1 flex items-center gap-3 flex-wrap">
                     <input
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-orange-500"
+                      className="flex-1 min-w-[120px] bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-orange-500"
                       autoFocus
+                    />
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={editHourlyRate}
+                      onChange={(e) => setEditHourlyRate(e.target.value)}
+                      className="w-24 bg-white border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:border-orange-500"
+                      placeholder="€/uur"
                     />
                     <div className="flex gap-1">
                       {PRESET_COLORS.map((c) => (
@@ -267,10 +288,13 @@ export default function FunctiesPage() {
                       >
                         {f.name}
                       </span>
+                      {f.hourlyRate > 0 && (
+                        <span className="text-sm text-gray-500">€{Number(f.hourlyRate).toFixed(2)}/u</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => { setEditingId(f.id); setEditName(f.name); setEditColor(f.color); }}
+                        onClick={() => { setEditingId(f.id); setEditName(f.name); setEditColor(f.color); setEditHourlyRate(String(f.hourlyRate || '')); }}
                         className="p-1.5 text-gray-500 hover:text-gray-900 transition-colors rounded"
                         title="Bewerken"
                       >

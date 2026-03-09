@@ -127,6 +127,33 @@ export default function ReportsPage() {
     }
   }
 
+  async function handleExportInvoice() {
+    try {
+      const params = new URLSearchParams({
+        start: startDate,
+        end: endDate,
+        ...(filterEmployee && { employeeId: filterEmployee }),
+        ...(filterLocation && { location: filterLocation }),
+        ...(filterStatus && { status: filterStatus }),
+      });
+      const res = await fetch(`/api/reports/export-invoice?${params}`);
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `NoLimitSafety_Factuur_${startDate}_${endDate}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        toast.success('Factuur PDF gegenereerd');
+      } else {
+        toast.error('Factuur genereren mislukt');
+      }
+    } catch {
+      toast.error('Factuur genereren mislukt');
+    }
+  }
+
   // Totals
   const totalShifts = reportData.reduce((sum, r) => sum + r.totalShifts, 0);
   const totalHours = reportData.reduce((sum, r) => sum + r.totalHours, 0);
@@ -206,6 +233,10 @@ export default function ReportsPage() {
             <Button onClick={handleExportCSV} variant="ghost" size="sm">
               <DocumentTextIcon className="h-4 w-4 mr-1.5" />
               CSV exporteren
+            </Button>
+            <Button onClick={handleExportInvoice} variant="outline" size="sm">
+              <ArrowDownTrayIcon className="h-4 w-4 mr-1.5" />
+              Factuur genereren (PDF)
             </Button>
           </div>
         </div>

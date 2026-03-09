@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireRole } from '@/lib/server-auth';
-import { calculateHours, calculateAmount } from '@/lib/utils';
+import { calculateHours } from '@/lib/utils';
 import { calculateToeslagen, calculateShiftCostWithToeslagen, type ToeslagRule } from '@/lib/toeslagen';
+import { format } from 'date-fns';
+import { nl } from 'date-fns/locale';
+import React from 'react';
+import { renderToBuffer } from '@react-pdf/renderer';
+import InvoiceDocument from '@/components/invoice/InvoiceDocument';
 
 export async function GET(req: NextRequest) {
   const { error } = await requireRole(['ADMIN', 'MANAGER']);
@@ -17,32 +22,25 @@ export async function GET(req: NextRequest) {
 
   try {
     const where: any = {};
-
     if (start && end) {
       where.date = {
         gte: new Date(start + 'T00:00:00.000Z'),
         lte: new Date(end + 'T23:59:59.999Z'),
       };
     }
-
     if (location) where.location = location;
     if (status) where.status = status;
-
-    // If filtering by employee, only get shifts with that employee
     if (employeeId) {
       where.shiftUsers = { some: { userId: employeeId } };
     }
 
-    // Fetch shifts, active surcharge rules, and functies in parallel
     const [shifts, toeslagRules, functies] = await Promise.all([
       prisma.shift.findMany({
         where,
         include: {
           shiftUsers: {
             include: {
-              user: {
-                select: { id: true, name: true, email: true, hourlyRate: true },
-              },
+              user: { select: { id: true, name: true, email: true, hourlyRate: true } },
             },
           },
         },
@@ -57,12 +55,6 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    // Build functie tarief lookup (shift.type matches functie.name)
-    const functieTarief = new Map<string, number>();
-    for (const f of functies) {
-      if (f.hourlyRate > 0) functieTarief.set(f.name, f.hourlyRate);
-    }
-
     const rules: ToeslagRule[] = toeslagRules.map((t) => ({
       id: t.id,
       name: t.name,
@@ -75,50 +67,45 @@ export async function GET(req: NextRequest) {
       sortOrder: t.sortOrder,
     }));
 
+    // Build functie tarief lookup
+    const functieTarief = new Map<string, number>();
+    for (const f of functies) {
+      if (f.hourlyRate > 0) functieTarief.set(f.name, f.hourlyRate);
+    }
+
     // Group by employee
     const employeeMap = new Map<string, {
-      employeeId: string;
       employeeName: string;
-      employeeEmail: string;
       hourlyRate: number;
       totalShifts: number;
       totalHours: number;
-      totalAmount: number;
       totalBaseAmount: number;
       totalSurchargeAmount: number;
-      shifts: any[];
+      totalAmount: number;
     }>();
 
     for (const shift of shifts) {
       const hours = calculateHours(shift.startTime, shift.endTime);
-
-      // Calculate surcharges for this shift
       const toeslagResult = calculateToeslagen(shift.date, shift.startTime, shift.endTime, rules);
 
       for (const su of shift.shiftUsers) {
         if (employeeId && su.userId !== employeeId) continue;
 
-        // Resolve effective hourly rate: functie tarief > user tarief
         const effectiveRate = functieTarief.get(shift.type) || su.user.hourlyRate;
 
         if (!employeeMap.has(su.userId)) {
           employeeMap.set(su.userId, {
-            employeeId: su.userId,
             employeeName: su.user.name,
-            employeeEmail: su.user.email,
             hourlyRate: effectiveRate,
             totalShifts: 0,
             totalHours: 0,
-            totalAmount: 0,
             totalBaseAmount: 0,
             totalSurchargeAmount: 0,
-            shifts: [],
+            totalAmount: 0,
           });
         }
 
         const emp = employeeMap.get(su.userId)!;
-
-        // Calculate cost with surcharges
         const costResult = calculateShiftCostWithToeslagen(
           hours,
           effectiveRate,
@@ -130,24 +117,10 @@ export async function GET(req: NextRequest) {
         emp.totalBaseAmount += costResult.baseAmount;
         emp.totalSurchargeAmount += costResult.surchargeAmount;
         emp.totalAmount += costResult.totalAmount;
-        emp.shifts.push({
-          id: shift.id,
-          date: shift.date,
-          startTime: shift.startTime,
-          endTime: shift.endTime,
-          location: shift.location,
-          type: shift.type,
-          status: shift.status,
-          hours,
-          amount: costResult.totalAmount,
-          baseAmount: costResult.baseAmount,
-          surchargeAmount: costResult.surchargeAmount,
-          surchargeDetails: costResult.details,
-        });
       }
     }
 
-    const result = Array.from(employeeMap.values())
+    const employees = Array.from(employeeMap.values())
       .map((emp) => ({
         ...emp,
         totalBaseAmount: Math.round(emp.totalBaseAmount * 100) / 100,
@@ -157,9 +130,45 @@ export async function GET(req: NextRequest) {
       }))
       .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Reports error:', error);
-    return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
+    const subtotal = employees.reduce((sum, e) => sum + e.totalAmount, 0);
+    const surchargeAmount = employees.reduce((sum, e) => sum + e.totalSurchargeAmount, 0);
+    const btw = Math.round(subtotal * 0.21 * 100) / 100;
+    const total = Math.round((subtotal + btw) * 100) / 100;
+
+    const periodStart = start
+      ? format(new Date(start), 'd MMMM yyyy', { locale: nl })
+      : 'Begin';
+    const periodEnd = end
+      ? format(new Date(end), 'd MMMM yyyy', { locale: nl })
+      : 'Eind';
+
+    const pdfBuffer = await renderToBuffer(
+      React.createElement(InvoiceDocument, {
+        periodStart,
+        periodEnd,
+        employees,
+        totals: {
+          shifts: employees.reduce((s, e) => s + e.totalShifts, 0),
+          hours: employees.reduce((s, e) => s + e.totalHours, 0),
+          baseAmount: employees.reduce((s, e) => s + e.totalBaseAmount, 0),
+          surchargeAmount,
+          subtotal,
+          btw,
+          total,
+        },
+      }) as any
+    );
+
+    const fileName = `NoLimitSafety_Factuur_${start || 'all'}_${end || 'all'}.pdf`;
+
+    return new NextResponse(new Uint8Array(pdfBuffer), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+      },
+    });
+  } catch (err) {
+    console.error('Invoice PDF export error:', err);
+    return NextResponse.json({ error: 'Factuur genereren mislukt' }, { status: 500 });
   }
 }

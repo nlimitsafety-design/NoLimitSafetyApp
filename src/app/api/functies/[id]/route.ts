@@ -11,7 +11,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (error) return error;
 
   try {
-    const { name, color, active } = await req.json();
+    const { name, color, active, hourlyRate } = await req.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'Naam is verplicht' }, { status: 400 });
@@ -31,6 +31,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         name: name.trim(),
         ...(color !== undefined && { color }),
         ...(active !== undefined && { active }),
+        ...(hourlyRate !== undefined && { hourlyRate: Number(hourlyRate) || 0 }),
       },
     });
 

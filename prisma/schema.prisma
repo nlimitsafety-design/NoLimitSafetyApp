@@ -157,11 +157,12 @@ model Location {
 }
 
 model Functie {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  color     String   @default("#f97316") // hex color for badge
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  name       String   @unique
+  color      String   @default("#f97316") // hex color for badge
+  hourlyRate Float    @default(0) // tarief gekoppeld aan deze functie
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
 
   userFuncties UserFunctie[]
 

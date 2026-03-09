@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (error) return error;
 
   try {
-    const { name, color } = await req.json();
+    const { name, color, hourlyRate } = await req.json();
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'Naam is verplicht' }, { status: 400 });
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: name.trim(),
         color: color || '#f97316',
+        ...(hourlyRate !== undefined && { hourlyRate: Number(hourlyRate) || 0 }),
       },
     });
 
