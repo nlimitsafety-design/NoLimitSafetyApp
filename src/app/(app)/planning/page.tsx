@@ -386,8 +386,8 @@ export default function PlanningPage() {
             </div>
             {isAdmin && (
               <Button onClick={() => openCreateShift()}>
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Nieuwe dienst
+                <PlusIcon className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Nieuwe dienst</span>
               </Button>
             )}
           </div>
@@ -448,9 +448,9 @@ export default function PlanningPage() {
                     {isAdmin && (
                       <button
                         onClick={() => openCreateShift(format(day, 'yyyy-MM-dd'))}
-                        className="p-1 rounded text-gray-500 hover:text-brand-500 hover:bg-brand-500/10 transition-colors"
+                        className="p-2 rounded text-gray-500 hover:text-brand-500 hover:bg-brand-500/10 active:bg-brand-500/20 transition-colors"
                       >
-                        <PlusIcon className="h-4 w-4" />
+                        <PlusIcon className="h-5 w-5" />
                       </button>
                     )}
                   </div>
@@ -507,55 +507,130 @@ export default function PlanningPage() {
         {/* Month View */}
         {view === 'month' && (
           <Card padding={false}>
-            <div className="grid grid-cols-7 border-b border-gray-200">
-              {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((d) => (
-                <div key={d} className="p-2 text-center text-xs font-medium text-gray-500 uppercase">
-                  {d}
-                </div>
-              ))}
+            {/* Desktop: calendar grid */}
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-7 border-b border-gray-200">
+                {['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'].map((d) => (
+                  <div key={d} className="p-2 text-center text-xs font-medium text-gray-500 uppercase">
+                    {d}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7">
+                {/* Padding for days before month start */}
+                {Array.from({ length: paddingDays }).map((_, i) => (
+                  <div key={`pad-${i}`} className="p-2 min-h-[80px] border-b border-r border-gray-100" />
+                ))}
+                {monthDays.map((day) => {
+                  const dayShifts = getVisibleShiftsForDay(day);
+                  const isToday = isSameDay(day, new Date());
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      onClick={() => isAdmin && dayShifts.length === 0 ? openCreateShift(format(day, 'yyyy-MM-dd')) : undefined}
+                      className={`p-2 min-h-[80px] border-b border-r border-gray-100 ${
+                        isToday ? 'bg-brand-500/5' : ''
+                      } ${isAdmin && dayShifts.length === 0 ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                    >
+                      <p className={`text-sm font-medium ${isToday ? 'text-brand-500' : 'text-gray-400'}`}>
+                        {format(day, 'd')}
+                      </p>
+                      <div className="mt-1 space-y-1">
+                        {dayShifts.slice(0, 2).map((shift) => (
+                          <div
+                            key={shift.id}
+                            onClick={(e) => { e.stopPropagation(); isAdmin ? openEditShift(shift) : (() => { setSelectedShift(shift); setDetailModalOpen(true); })(); }}
+                            className={`px-1.5 py-0.5 rounded text-[10px] truncate cursor-pointer ${
+                              shift.status === 'OPEN'
+                                ? 'bg-purple-500/20 text-purple-400'
+                                : shift.status === 'TOEGEWEZEN'
+                                ? 'bg-cyan-500/20 text-cyan-400'
+                                : shift.status === 'BEVESTIGD'
+                                ? 'bg-green-500/20 text-green-400'
+                                : shift.status === 'AFGEROND'
+                                ? 'bg-blue-500/20 text-blue-400'
+                                : 'bg-yellow-500/20 text-yellow-400'
+                            }`}
+                          >
+                            {shift.location} {shift.startTime}
+                          </div>
+                        ))}
+                        {dayShifts.length > 2 && (
+                          <p className="text-[10px] text-gray-500">+{dayShifts.length - 2} meer</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="grid grid-cols-7">
-              {/* Padding for days before month start */}
-              {Array.from({ length: paddingDays }).map((_, i) => (
-                <div key={`pad-${i}`} className="p-2 min-h-[80px] border-b border-r border-gray-100" />
-              ))}
+
+            {/* Mobile: vertical list of days */}
+            <div className="sm:hidden divide-y divide-gray-100">
               {monthDays.map((day) => {
                 const dayShifts = getVisibleShiftsForDay(day);
                 const isToday = isSameDay(day, new Date());
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`p-2 min-h-[80px] border-b border-r border-gray-100 ${
-                      isToday ? 'bg-brand-500/5' : ''
-                    }`}
+                    className={`p-3 ${isToday ? 'bg-brand-500/5' : ''}`}
                   >
-                    <p className={`text-sm font-medium ${isToday ? 'text-brand-500' : 'text-gray-400'}`}>
-                      {format(day, 'd')}
-                    </p>
-                    <div className="mt-1 space-y-1">
-                      {dayShifts.slice(0, 2).map((shift) => (
-                        <div
-                          key={shift.id}
-                          onClick={() => isAdmin ? openEditShift(shift) : (() => { setSelectedShift(shift); setDetailModalOpen(true); })()}
-                          className={`px-1.5 py-0.5 rounded text-[10px] truncate cursor-pointer ${
-                            shift.status === 'OPEN'
-                              ? 'bg-purple-500/20 text-purple-400'
-                              : shift.status === 'TOEGEWEZEN'
-                              ? 'bg-cyan-500/20 text-cyan-400'
-                              : shift.status === 'BEVESTIGD'
-                              ? 'bg-green-500/20 text-green-400'
-                              : shift.status === 'AFGEROND'
-                              ? 'bg-blue-500/20 text-blue-400'
-                              : 'bg-yellow-500/20 text-yellow-400'
-                          }`}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-medium uppercase ${isToday ? 'text-brand-500' : 'text-gray-500'}`}>
+                          {format(day, 'EEE', { locale: nl })}
+                        </span>
+                        <span className={`text-sm font-bold ${isToday ? 'text-brand-500' : 'text-gray-900'}`}>
+                          {format(day, 'd MMM', { locale: nl })}
+                        </span>
+                        {dayShifts.length === 0 && (
+                          <span className="text-xs text-gray-400 italic">Geen diensten</span>
+                        )}
+                      </div>
+                      {isAdmin && (
+                        <button
+                          onClick={() => openCreateShift(format(day, 'yyyy-MM-dd'))}
+                          className="p-2 rounded-lg text-gray-400 hover:text-brand-500 hover:bg-brand-500/10 transition-colors"
                         >
-                          {shift.location} {shift.startTime}
-                        </div>
-                      ))}
-                      {dayShifts.length > 2 && (
-                        <p className="text-[10px] text-gray-500">+{dayShifts.length - 2} meer</p>
+                          <PlusIcon className="h-5 w-5" />
+                        </button>
                       )}
                     </div>
+                    {dayShifts.length > 0 && (
+                      <div className="space-y-2 pl-1">
+                        {dayShifts.map((shift) => (
+                          <div
+                            key={shift.id}
+                            onClick={() => isAdmin ? openEditShift(shift) : (() => { setSelectedShift(shift); setDetailModalOpen(true); })()}
+                            className={`p-2.5 rounded-lg text-sm border-l-2 cursor-pointer active:bg-gray-100 transition-colors ${
+                              shift.status === 'OPEN'
+                                ? 'border-l-purple-500 bg-purple-500/5'
+                                : shift.status === 'TOEGEWEZEN'
+                                ? 'border-l-cyan-500 bg-cyan-500/5'
+                                : shift.status === 'BEVESTIGD'
+                                ? 'border-l-green-500 bg-green-500/5'
+                                : shift.status === 'AFGEROND'
+                                ? 'border-l-blue-500 bg-blue-500/5'
+                                : 'border-l-yellow-500 bg-yellow-500/5'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium text-gray-900">{shift.location}</p>
+                              <p className="text-gray-500">{shift.startTime} - {shift.endTime}</p>
+                            </div>
+                            {shift.status === 'OPEN' ? (
+                              <p className="text-purple-400 text-xs mt-1 font-medium">Open dienst</p>
+                            ) : (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {shift.shiftUsers.map((su) => (
+                                  <span key={su.id} className="text-xs text-gray-500">{su.user.name.split(' ')[0]}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               })}
