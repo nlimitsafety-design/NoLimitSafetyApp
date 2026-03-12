@@ -1,0 +1,17 @@
+{
+  "name": "NoLimitSafety - Planning & Beheer",
+  "short_name": "NoLimitSafety",
+  "description": "Moderne planning en personeelsbeheer voor beveiligingsbedrijven",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ED1C24",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -5,6 +5,12 @@ import Providers from '@/components/Providers';
 export const metadata: Metadata = {
   title: 'NoLimitSafety - Planning & Beheer',
   description: 'Moderne planning en personeelsbeheer voor beveiligingsbedrijven',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'NoLimitSafety',
+    statusBarStyle: 'default',
+  },
   icons: {
     icon: '/logo.png',
     apple: '/logo.png',
