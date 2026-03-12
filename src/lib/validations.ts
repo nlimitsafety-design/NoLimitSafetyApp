@@ -10,7 +10,7 @@ export const employeeSchema = z.object({
   email: z.string().email('Ongeldig e-mailadres'),
   phone: z.string().optional(),
   role: z.enum(['ADMIN', 'MANAGER', 'EMPLOYEE']),
-  hourlyRate: z.number().min(0, 'Tarief mag niet negatief zijn'),
+  hourlyRate: z.number().min(0).optional().default(0),
   active: z.boolean().default(true),
   password: z.string().min(6, 'Wachtwoord moet minimaal 6 tekens bevatten').optional(),
   functieIds: z.array(z.string()).optional(),
