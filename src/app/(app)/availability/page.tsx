@@ -93,6 +93,9 @@ export default function AvailabilityPage() {
   const { data: rawExceptions = [], mutate: mutateExceptions } = useAvailabilityExceptions(viewStart, viewEnd);
   const exceptions = rawExceptions as ExceptionItem[];
 
+  // Admin: all employees' availability
+  const { data: allAvailability = [] } = useAvailability(viewStart, viewEnd);
+
   // Recurring section expanded
   const [recurringOpen, setRecurringOpen] = useState(false);
 
