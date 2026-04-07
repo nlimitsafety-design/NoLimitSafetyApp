@@ -58,7 +58,7 @@ interface Shift {
   shiftUsers: { id: string; userId: string; user: { id: string; name: string; email: string } }[];
   _count?: { shiftRequests: number };
   opdrachtgeverId: string | null;
-  opdrachtgever?: { id: string; name: string } | null;
+  opdrachtgever?: { id: string; name: string; notes?: string | null } | null;
 }
 
 export default function PlanningPage() {
