@@ -685,6 +685,16 @@ export default function PlanningPage() {
                   <p className="text-sm text-gray-600">{selectedShift.note}</p>
                 </div>
               )}
+              {selectedShift.opdrachtgever?.notes && (
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">
+                    Extra informatie{selectedShift.opdrachtgever.name ? ` — ${selectedShift.opdrachtgever.name}` : ''}
+                  </p>
+                  <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 whitespace-pre-wrap">
+                    {selectedShift.opdrachtgever.notes}
+                  </div>
+                </div>
+              )}
               {selectedShift.shiftUsers.length > 0 && (
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Collega&apos;s op deze dienst</p>
