@@ -4,5 +4,18 @@
       "Bash(tasklist)",
       "Bash(npx next:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd e:/Users/zsaba/code/NoLimitSafetyApp-main && git add -A && git diff --cached --quiet || git commit -m \"auto: update via Claude Code\" && git push origin main"
+          }
+        ]
+      }
+    ]
   }
 }
