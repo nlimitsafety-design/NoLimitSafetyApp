@@ -120,7 +120,7 @@ export default function PlanningPage() {
       startTime: '08:00',
       endTime: '17:00',
       location: '',
-      type: 'TOEZICHT',
+      type: functies[0]?.name || 'TOEZICHT',
       note: '',
       status: 'CONCEPT',
       employeeIds: [],
