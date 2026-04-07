@@ -67,6 +67,7 @@ interface ExceptionItem {
 export default function AvailabilityPage() {
   const { data: session } = useSession();
   const isEmployee = session?.user?.role === 'EMPLOYEE';
+  const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
 
   // Recurring data
   const { data: rawRecurring = [], mutate: mutateRecurring } = useRecurringAvailability();
