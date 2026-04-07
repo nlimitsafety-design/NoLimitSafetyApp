@@ -11,6 +11,9 @@ export const metadata: Metadata = {
     title: 'NoLimitSafety',
     statusBarStyle: 'default',
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
   icons: {
     icon: '/icon-512.png',
     apple: '/icon-192.png',
