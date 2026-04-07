@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (!type || !['TIME_BASED', 'DAY_BASED'].includes(type)) {
       return NextResponse.json({ error: 'Type moet TIME_BASED of DAY_BASED zijn' }, { status: 400 });
     }
-    if (typeof percentage !== 'number' || percentage <= 100) {
+    if (typeof percentage !== 'number' || percentage < 100) {
       return NextResponse.json({ error: 'Percentage moet groter dan 100 zijn (bijv. 130 = 130%)' }, { status: 400 });
     }
     if (type === 'TIME_BASED' && (!startTime || !endTime)) {
