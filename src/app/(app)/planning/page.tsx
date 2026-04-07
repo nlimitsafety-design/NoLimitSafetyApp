@@ -484,6 +484,9 @@ export default function PlanningPage() {
                             )}
                           </div>
                           <p className="text-gray-400 mt-0.5">{shift.startTime} - {shift.endTime}</p>
+                          {shift.opdrachtgever && (
+                            <p className="text-[10px] text-brand-400 font-medium truncate mt-0.5">{shift.opdrachtgever.name}</p>
+                          )}
                           {shift.status === 'OPEN' ? (
                             <p className="text-purple-400 mt-0.5 font-medium">Open dienst</p>
                           ) : (
