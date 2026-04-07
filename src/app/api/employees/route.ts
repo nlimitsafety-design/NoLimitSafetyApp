@@ -120,8 +120,8 @@ export async function POST(req: NextRequest) {
     };
 
     return NextResponse.json(result, { status: 201 });
-  } catch {
-    console.error('Create employee error:', error);
+  } catch (err) {
+    console.error('Create employee error:', err);
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
 }
