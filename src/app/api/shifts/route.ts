@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
             },
           },
         },
+        opdrachtgever: { select: { id: true, name: true } },
         ...(isAdmin || isManager
           ? {
               _count: { select: { shiftRequests: { where: { status: 'PENDING' } } } },
