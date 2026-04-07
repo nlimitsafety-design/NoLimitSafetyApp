@@ -65,10 +65,7 @@ export async function POST(req: NextRequest) {
 
     const { date, startTime, endTime, location, type, note, status, employeeIds, opdrachtgeverId, repeatUntil, repeatDays } = parsed.data;
 
-    // Validate time order
-    if (startTime >= endTime) {
-      return NextResponse.json({ error: 'Eindtijd moet na starttijd liggen' }, { status: 400 });
-    }
+    // Overnight shifts allowed (endTime < startTime means next day)
 
     // Build list of dates (single date or bulk repeat)
     const dates: string[] = [date];
