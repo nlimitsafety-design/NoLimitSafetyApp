@@ -559,7 +559,7 @@ export default function PlanningPage() {
                                 : 'bg-yellow-500/20 text-yellow-400'
                             }`}
                           >
-                            {shift.location} {shift.startTime}
+                            {shift.opdrachtgever ? shift.opdrachtgever.name : shift.location} {shift.startTime}
                           </div>
                         ))}
                         {dayShifts.length > 2 && (
