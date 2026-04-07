@@ -244,10 +244,10 @@ export default function OpdrachtgeversPage() {
             />
           </div>
           <Textarea
-            label="Opmerkingen"
+            label="Extra informatie"
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            placeholder="Extra informatie..."
+            placeholder="Extra informatie die zichtbaar is op dienstdetails..."
           />
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
