@@ -33,8 +33,11 @@ export function calculateHours(startTime: string, endTime: string): number {
   const [endH, endM] = endTime.split(":").map(Number);
   const startMinutes = startH * 60 + startM;
   const endMinutes = endH * 60 + endM;
-  if (endMinutes <= startMinutes) return 0; // Invalid range (end before/equal start)
-  return (endMinutes - startMinutes) / 60;
+  // If end <= start, treat as overnight shift (add 24 hours)
+  const totalMinutes = endMinutes > startMinutes
+    ? endMinutes - startMinutes
+    : endMinutes + 1440 - startMinutes;
+  return totalMinutes / 60;
 }
 
 export function calculateAmount(hours: number, rate: number): number {
