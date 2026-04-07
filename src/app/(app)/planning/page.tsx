@@ -737,15 +737,10 @@ export default function PlanningPage() {
                   options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
                 />
                 <Select
-                  label="Diensttype"
+                  label="Functie"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  options={[
-                    { value: 'TOEZICHT', label: 'Toezicht' },
-                    { value: 'TRAINING', label: 'Training' },
-                    { value: 'EVENT', label: 'Event' },
-                    { value: 'ANDERS', label: 'Anders' },
-                  ]}
+                  options={functies.map((f: any) => ({ value: f.name, label: f.name }))}
                 />
                 <Select
                   label="Status"
