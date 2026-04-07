@@ -1,0 +1,321 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  phone        String?
+  passwordHash String
+  role         String         @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
+  hourlyRate   Float          @default(0)
+  active       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  userFuncties             UserFunctie[]
+  userKwalificaties        UserKwalificatie[]
+  availability             Availability[]
+  recurringAvailabilities  RecurringAvailability[]
+  availabilityExceptions   AvailabilityException[]
+  shiftUsers               ShiftUser[]
+  shiftRequests            ShiftRequest[]
+  notifications            Notification[]
+  pushSubscriptions        PushSubscription[]
+  conversationMembers      ConversationMember[]
+  sentMessages             Message[]
+  createdConversations     Conversation[] @relation("conversationCreator")
+
+  @@map("users")
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  status    String   @default("AVAILABLE") // AVAILABLE, UNAVAILABLE, PARTIAL
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, startTime, endTime])
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@map("availabilities")
+}
+
+model RecurringAvailability {
+  id        String   @id @default(cuid())
+  userId    String
+  weekday   Int      // 1=Maandag, 2=Dinsdag, ..., 7=Zondag (ISO)
+  startTime String   // HH:mm format
+  endTime   String   // HH:mm format
+  validFrom DateTime // Geldig vanaf datum
+  validTo   DateTime? // Geldig tot datum (null = tot nader order)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, weekday])
+  @@index([userId])
+  @@map("recurring_availabilities")
+}
+
+model AvailabilityException {
+  id        String   @id @default(cuid())
+  userId    String
+  date      DateTime
+  type      String   // AVAILABLE, UNAVAILABLE
+  startTime String?  // HH:mm — nullable for UNAVAILABLE (hele dag)
+  endTime   String?  // HH:mm — nullable for UNAVAILABLE (hele dag)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([userId])
+  @@map("availability_exceptions")
+}
+
+model Opdrachtgever {
+  id            String   @id @default(cuid())
+  name          String
+  contactPerson String?
+  email         String?
+  phone         String?
+  address       String?
+  notes         String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  shifts Shift[]
+
+  @@map("opdrachtgevers")
+}
+
+model Shift {
+  id               String   @id @default(cuid())
+  date             DateTime
+  startTime        String   // HH:mm format
+  endTime          String   // HH:mm format
+  location         String
+  type             String   @default("TOEZICHT") // TRAINING, TOEZICHT, EVENT, ANDERS
+  note             String?
+  status           String   @default("CONCEPT") // CONCEPT, OPEN, TOEGEWEZEN, BEVESTIGD, AFGEROND
+  opdrachtgeverId  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  opdrachtgever Opdrachtgever? @relation(fields: [opdrachtgeverId], references: [id], onDelete: SetNull)
+  shiftUsers    ShiftUser[]
+  shiftRequests ShiftRequest[]
+
+  @@index([date])
+  @@index([status])
+  @@index([date, status])
+  @@index([opdrachtgeverId])
+  @@map("shifts")
+}
+
+model ShiftUser {
+  id      String @id @default(cuid())
+  shiftId String
+  userId  String
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shiftId, userId])
+  @@index([userId])
+  @@index([shiftId])
+  @@map("shift_users")
+}
+
+model ShiftRequest {
+  id         String   @id @default(cuid())
+  shiftId    String
+  userId     String
+  status     String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt  DateTime @default(now())
+  reviewedAt DateTime?
+  reviewedBy String?
+
+  shift Shift @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shiftId, userId])
+  @@index([shiftId])
+  @@index([userId])
+  @@index([status])
+  @@map("shift_requests")
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  address   String?
+  createdAt DateTime @default(now())
+
+  @@map("locations")
+}
+
+model Functie {
+  id         String   @id @default(cuid())
+  name       String   @unique
+  color      String   @default("#f97316") // hex color for badge
+  hourlyRate Float    @default(0) // tarief gekoppeld aan deze functie
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  userFuncties UserFunctie[]
+
+  @@map("functies")
+}
+
+model UserFunctie {
+  id        String @id @default(cuid())
+  userId    String
+  functieId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  functie Functie @relation(fields: [functieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, functieId])
+  @@index([userId])
+  @@index([functieId])
+  @@map("user_functies")
+}
+
+model Kwalificatie {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  userKwalificaties UserKwalificatie[]
+
+  @@map("kwalificaties")
+}
+
+model UserKwalificatie {
+  id             String @id @default(cuid())
+  userId         String
+  kwalificatieId String
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kwalificatie Kwalificatie @relation(fields: [kwalificatieId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kwalificatieId])
+  @@index([userId])
+  @@index([kwalificatieId])
+  @@map("user_kwalificaties")
+}
+
+model Toeslag {
+  id        String   @id @default(cuid())
+  name      String   @unique     // e.g. "Avond", "Nacht", "Zaterdag", "Zondag", "Feestdag"
+  type      String               // TIME_BASED or DAY_BASED
+  startTime String?              // HH:mm — for TIME_BASED (e.g. "20:00")
+  endTime   String?              // HH:mm — for TIME_BASED (e.g. "06:00" = next day)
+  days      String?              // comma-separated ISO weekdays: "6" = zaterdag, "7" = zondag
+  percentage Float               // e.g. 130 means 130% (so 30% extra)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("toeslagen")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String               // recipient
+  type      String               // SHIFT_ASSIGNED, SHIFT_REMOVED, SHIFT_UPDATED, SHIFT_DELETED, REQUEST_APPROVED, REQUEST_REJECTED, NEW_REQUEST, NEW_OPEN_SHIFT
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  shiftId   String?              // optional reference to related shift
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+  @@index([userId])
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+
+model Conversation {
+  id        String   @id @default(cuid())
+  name      String?              // null for 1-on-1, set for group chats
+  isGroup   Boolean  @default(false)
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  creator  User?    @relation("conversationCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  members  ConversationMember[]
+  messages Message[]
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}

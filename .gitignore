@@ -1,0 +1,14 @@
+logo.png
+node_modules/
+.next/
+prisma/dev.db
+prisma/dev.db-journal
+dev.db
+dev.db-journal
+.env
+seed-local.js
+.env.local
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.env*.local
