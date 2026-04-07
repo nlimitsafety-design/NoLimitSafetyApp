@@ -8,6 +8,11 @@
   body {
     @apply bg-navy-950 text-gray-900 antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  html {
+    overflow-x: hidden;
   }
 
   /* Custom scrollbar */
