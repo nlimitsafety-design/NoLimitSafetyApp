@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
     }
 
     if (location) where.location = location;
-    if (status) where.status = status;
+    const ALLOWED_STATUSES = ['CONCEPT', 'OPEN', 'TOEGEWEZEN', 'BEVESTIGD', 'AFGEROND'];
+    if (status && ALLOWED_STATUSES.includes(status)) where.status = status;
 
     // If filtering by employee, only get shifts with that employee
     if (employeeId) {
