@@ -84,8 +84,8 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json(updated);
-  } catch {
-    console.error('Profile update error:', error);
+  } catch (err) {
+    console.error('Profile update error:', err);
     return NextResponse.json({ error: 'Fout bij bijwerken profiel' }, { status: 500 });
   }
 }
