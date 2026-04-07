@@ -18,9 +18,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
     const { date, startTime, endTime, location, type, note, status, employeeIds, opdrachtgeverId } = parsed.data;
 
-    if (startTime >= endTime) {
-      return NextResponse.json({ error: 'Eindtijd moet na starttijd liggen' }, { status: 400 });
-    }
+    // Overnight shifts allowed (endTime < startTime means next day)
 
     // Get old assignments before update (for notification diff)
     const oldAssignments = await prisma.shiftUser.findMany({
