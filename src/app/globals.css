@@ -67,6 +67,18 @@
 }
 
 @layer utilities {
+  /* Sidebar stays fixed size regardless of browser zoom */
+  @media (min-width: 1024px) {
+    .sidebar-fixed {
+      width: 256px !important;
+      min-width: 256px !important;
+      max-width: 256px !important;
+    }
+    .sidebar-offset {
+      padding-left: 256px !important;
+    }
+  }
+}
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in-out;
   }
