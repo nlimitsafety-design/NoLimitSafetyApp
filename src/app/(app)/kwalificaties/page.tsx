@@ -147,7 +147,7 @@ export default function KwalificatiesPage() {
 
       {creating && (
         <Card className="mb-6">
-          <div className="flex items-end gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3">
             <div className="flex-1">
               <Input
                 label="Naam"
