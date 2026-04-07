@@ -33,7 +33,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
       <PushNotificationManager />
-      <main className="lg:pl-64 pt-16 lg:pt-0">
+      <main className="pt-16 lg:pt-0 sidebar-offset">
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
         </div>
