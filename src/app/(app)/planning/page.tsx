@@ -120,7 +120,7 @@ export default function PlanningPage() {
       startTime: '08:00',
       endTime: '17:00',
       location: '',
-      type: functies[0]?.name || '',
+      type: 'TOEZICHT',
       note: '',
       status: 'CONCEPT',
       employeeIds: [],
@@ -737,10 +737,15 @@ export default function PlanningPage() {
                   options={TIME_SLOTS.map(t => ({ value: t, label: t }))}
                 />
                 <Select
-                  label="Functie"
+                  label="Diensttype"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
-                  options={functies.map((f: any) => ({ value: f.name, label: f.name }))}
+                  options={[
+                    { value: 'TOEZICHT', label: 'Toezicht' },
+                    { value: 'TRAINING', label: 'Training' },
+                    { value: 'EVENT', label: 'Event' },
+                    { value: 'ANDERS', label: 'Anders' },
+                  ]}
                 />
                 <Select
                   label="Status"
