@@ -98,5 +98,5 @@ export const config = {
   // We want to block /login if domain is wrong.
   // We want to block /api/auth/signin if domain is wrong.
   // So we match everything except static assets.
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg|.*\\.webp|.*\\.ico).*)"],
 };
