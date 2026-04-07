@@ -101,6 +101,7 @@ export default function PushNotificationManager() {
 
   useEffect(() => {
     if (!session?.user) return;
+    if ((session.user as { role?: string }).role === 'ADMIN') return;
 
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
