@@ -265,7 +265,7 @@ export default function Sidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 bg-gray-900 border-r border-gray-700/50 sidebar-fixed">
+      <div className="hidden lg:flex lg:flex-col lg:fixed lg:top-0 lg:bottom-0 bg-gray-900 border-r border-gray-700/50 sidebar-fixed" style={{ height: '100dvh' }}>
         <NavContent />
       </div>
     </>
