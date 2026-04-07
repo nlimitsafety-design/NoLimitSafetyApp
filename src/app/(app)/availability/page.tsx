@@ -842,7 +842,7 @@ export default function AvailabilityPage() {
             ]}
           />
           {planForm.type === 'AVAILABLE' && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Select
                 label="Van"
                 value={planForm.startTime}
@@ -1070,7 +1070,7 @@ export default function AvailabilityPage() {
           />
 
           {fillMonthForm.type === 'AVAILABLE' && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <Select
                 label="Van"
                 value={fillMonthForm.startTime}
