@@ -29,6 +29,10 @@ export async function POST(req: NextRequest) {
       if (!startTime || !endTime) {
         return NextResponse.json({ error: 'Start- en eindtijd zijn verplicht voor beschikbaar' }, { status: 400 });
       }
+      const timeRegex = /^\d{2}:\d{2}$/;
+      if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+        return NextResponse.json({ error: 'Ongeldig tijdformaat (HH:mm)' }, { status: 400 });
+      }
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         return NextResponse.json({ error: 'Starttijd moet voor eindtijd liggen' }, { status: 400 });
       }
