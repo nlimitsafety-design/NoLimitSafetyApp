@@ -795,6 +795,17 @@ export default function PlanningPage() {
                 placeholder="Extra informatie over deze dienst..."
               />
 
+              {selectedShift?.opdrachtgever?.notes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Opmerkingen opdrachtgever ({selectedShift.opdrachtgever.name})
+                  </label>
+                  <div className="w-full rounded-lg border border-gray-600 bg-gray-700/50 px-3 py-2 text-sm text-gray-300 min-h-[80px] whitespace-pre-wrap">
+                    {selectedShift.opdrachtgever.notes}
+                  </div>
+                </div>
+              )}
+
               {/* Bulk planning */}
               {!selectedShift && (
                 <div className="border border-gray-700 rounded-lg p-3 space-y-3">
