@@ -283,6 +283,7 @@ export default function AvailabilityPage() {
       startTime: '08:00',
       endTime: '17:00',
       note: '',
+      targetUserId: selectedEmployeeId || '',
     });
     setPlanModal(true);
   }
@@ -295,6 +296,7 @@ export default function AvailabilityPage() {
       startTime: item.startTime || '08:00',
       endTime: item.endTime || '17:00',
       note: item.note || '',
+      targetUserId: item.userId || '',
     });
     setPlanModal(true);
   }
