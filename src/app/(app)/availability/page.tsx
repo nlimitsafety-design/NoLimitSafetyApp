@@ -723,7 +723,7 @@ export default function AvailabilityPage() {
                             </div>
                           </div>
                           {item.startTime && item.endTime ? (
-                            <p className={`mt-1 font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                            <p className={`mt-1 font-medium ${item.type === 'AVAILABLE' ? 'text-green-400' : item.type === 'PARTIAL' ? 'text-orange-400' : 'text-red-400'}`}>
                               {item.startTime} - {item.endTime}
                             </p>
                           ) : (
