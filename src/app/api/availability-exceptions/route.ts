@@ -132,14 +132,14 @@ export async function PUT(req: NextRequest) {
 
     const { date, type, startTime, endTime, note } = parsed.data;
 
-    if (type === 'AVAILABLE' && (!startTime || !endTime)) {
+    if ((type === 'AVAILABLE' || type === 'PARTIAL') && (!startTime || !endTime)) {
       return NextResponse.json(
-        { error: 'Start- en eindtijd zijn verplicht voor beschikbaar' },
+        { error: 'Start- en eindtijd zijn verplicht' },
         { status: 400 }
       );
     }
 
-    if (type === 'AVAILABLE' && startTime && endTime) {
+    if ((type === 'AVAILABLE' || type === 'PARTIAL') && startTime && endTime) {
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         return NextResponse.json({ error: 'Starttijd moet voor eindtijd liggen' }, { status: 400 });
       }
