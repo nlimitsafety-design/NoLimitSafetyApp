@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRecurringAvailability, useAvailabilityExceptions, useAvailability, useEmployees } from '@/lib/swr';
+import { useRecurringAvailability, useAvailabilityExceptions, useEmployees } from '@/lib/swr';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
