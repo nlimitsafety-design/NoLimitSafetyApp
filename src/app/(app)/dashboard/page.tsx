@@ -18,6 +18,89 @@ import {
 import { format, startOfWeek, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
+function abbrev(name: string) {
+  const parts = name.trim().split(' ');
+  if (parts.length === 1) return parts[0].slice(0, 6);
+  return parts[0].slice(0, 1).toUpperCase() + '. ' + parts[parts.length - 1].slice(0, 8);
+}
+
+function AvailabilityGrid({ data, loading }: { data: any; loading: boolean }) {
+  const grid = data?.weekAvailabilityGrid;
+  const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const dayLabels = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Beschikbaarheid deze week</CardTitle>
+        <Link href="/availability" className="text-sm text-brand-500 hover:text-brand-300 flex items-center gap-1">
+          Beheren <ArrowRightIcon className="h-3 w-3" />
+        </Link>
+      </CardHeader>
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-7 bg-gray-50 rounded animate-pulse" />)}
+        </div>
+      ) : !grid || grid.employees.length === 0 ? (
+        <p className="text-gray-500 text-sm py-4 text-center">Geen medewerkers gevonden</p>
+      ) : (
+        <div className="overflow-x-auto -mx-1">
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr>
+                <th className="text-left py-1 px-1 text-gray-400 font-medium w-20 min-w-[5rem]">Naam</th>
+                {dayLabels.map((d, i) => {
+                  const dayDate = addDays(weekStart, i);
+                  const isToday = format(dayDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                  return (
+                    <th key={d} className={`text-center py-1 px-0.5 font-medium ${isToday ? 'text-brand-500' : 'text-gray-400'}`}>
+                      {d}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {grid.employees.map((emp: any) => (
+                <tr key={emp.id} className="hover:bg-gray-50">
+                  <td className="py-1 px-1 font-medium text-gray-700 truncate max-w-[5rem]" title={emp.name}>
+                    {abbrev(emp.name)}
+                  </td>
+                  {emp.days.map((day: any, i: number) => {
+                    const type = day?.type;
+                    const isToday = grid.days[i] === format(new Date(), 'yyyy-MM-dd');
+                    const cell = type === 'AVAILABLE'
+                      ? { bg: 'bg-green-500', title: day.startTime && day.endTime ? `${day.startTime}-${day.endTime}` : 'Hele dag' }
+                      : type === 'UNAVAILABLE'
+                        ? { bg: 'bg-red-500', title: 'Niet beschikbaar' }
+                        : type === 'PARTIAL'
+                          ? { bg: 'bg-orange-400', title: day.startTime && day.endTime ? `${day.startTime}-${day.endTime}` : 'Gedeeltelijk' }
+                          : { bg: 'bg-gray-200', title: 'Niet ingevuld' };
+                    return (
+                      <td key={i} className={`text-center py-1 px-0.5 ${isToday ? 'bg-brand-500/5' : ''}`}>
+                        <div
+                          className={`mx-auto rounded w-6 h-6 ${cell.bg} opacity-80`}
+                          title={cell.title}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="flex items-center gap-3 mt-3 text-[10px] text-gray-400">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" />Beschikbaar</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-orange-400 inline-block" />Gedeeltelijk</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500 inline-block" />Niet beschikbaar</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200 inline-block" />Onbekend</span>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { data, isLoading: loading } = useDashboard();
