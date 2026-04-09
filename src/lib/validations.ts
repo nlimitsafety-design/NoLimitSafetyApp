@@ -39,7 +39,7 @@ export const recurringAvailabilitySchema = z.object({
 
 export const availabilityExceptionSchema = z.object({
   date: z.string().min(1, "Datum is verplicht"),
-  type: z.enum(["AVAILABLE", "UNAVAILABLE"]),
+  type: z.enum(["AVAILABLE", "UNAVAILABLE", "PARTIAL"]),
   startTime: z
     .string()
     .regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat (HH:mm)")
