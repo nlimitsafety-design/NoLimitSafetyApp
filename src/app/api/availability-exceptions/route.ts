@@ -60,8 +60,10 @@ export async function POST(req: NextRequest) {
 
   try {
     const user = session!.user as any;
+    const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
     const body = await req.json();
-    const parsed = availabilityExceptionSchema.safeParse(body);
+    const { targetUserId, ...rest } = body;
+    const parsed = availabilityExceptionSchema.safeParse(rest);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -72,30 +74,30 @@ export async function POST(req: NextRequest) {
 
     const { date, type, startTime, endTime, note } = parsed.data;
 
-    // For AVAILABLE/PARTIAL type, startTime and endTime are required
-    if ((type === 'AVAILABLE' || type === 'PARTIAL') && (!startTime || !endTime)) {
+    // Only PARTIAL requires times; AVAILABLE = whole day, UNAVAILABLE = not available
+    if (type === 'PARTIAL' && (!startTime || !endTime)) {
       return NextResponse.json(
-        { error: 'Start- en eindtijd zijn verplicht' },
+        { error: 'Start- en eindtijd zijn verplicht voor gedeeltelijk' },
         { status: 400 }
       );
     }
 
-    // Validate start < end for AVAILABLE/PARTIAL
-    if ((type === 'AVAILABLE' || type === 'PARTIAL') && startTime && endTime) {
+    if (type === 'PARTIAL' && startTime && endTime) {
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         return NextResponse.json({ error: 'Starttijd moet voor eindtijd liggen' }, { status: 400 });
       }
     }
 
     const excDate = new Date(date + 'T00:00:00.000Z');
+    const ownerId = isAdmin && targetUserId ? targetUserId : user.id;
 
     const item = await prisma.availabilityException.create({
       data: {
-        userId: user.id,
+        userId: ownerId,
         date: excDate,
         type,
-        startTime: startTime || null,
-        endTime: endTime || null,
+        startTime: type === 'PARTIAL' ? (startTime || null) : null,
+        endTime: type === 'PARTIAL' ? (endTime || null) : null,
         note: note || null,
       },
     });
