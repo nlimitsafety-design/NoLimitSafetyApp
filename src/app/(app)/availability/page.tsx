@@ -851,6 +851,17 @@ export default function AvailabilityPage() {
         title={editingPlan ? 'Beschikbaarheid bewerken' : 'Beschikbaarheid inplannen'}
       >
         <form onSubmit={handlePlanSubmit} noValidate className="space-y-4">
+          {isAdmin && (
+            <Select
+              label="Medewerker"
+              value={planForm.targetUserId}
+              onChange={(e) => setPlanForm({ ...planForm, targetUserId: e.target.value })}
+              options={[
+                { value: '', label: '— Kies medewerker —' },
+                ...(employeeList as any[]).map((emp: any) => ({ value: emp.id, label: emp.name })),
+              ]}
+            />
+          )}
           <Input
             label="Datum"
             type="date"
