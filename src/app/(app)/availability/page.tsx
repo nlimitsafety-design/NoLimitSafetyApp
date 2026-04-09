@@ -690,7 +690,6 @@ export default function AvailabilityPage() {
                 {dayItems.length > 0 ? (
                   <div className="space-y-2">
                     {dayItems.map((item) => {
-                      const isAvailable = item.type === 'AVAILABLE';
                       return (
                         <div
                           key={item.id}
