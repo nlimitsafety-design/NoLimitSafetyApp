@@ -695,9 +695,11 @@ export default function AvailabilityPage() {
                         <div
                           key={item.id}
                           className={`p-2.5 rounded-lg text-xs cursor-pointer transition-colors ${
-                            isAvailable
+                            item.type === 'AVAILABLE'
                               ? 'bg-green-500/10 border border-green-500/20 hover:bg-green-500/15 active:bg-green-500/20'
-                              : 'bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 active:bg-red-500/20'
+                              : item.type === 'PARTIAL'
+                                ? 'bg-orange-400/10 border border-orange-400/20 hover:bg-orange-400/15 active:bg-orange-400/20'
+                                : 'bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 active:bg-red-500/20'
                           }`}
                           onClick={() => openEditPlan(item)}
                         >
