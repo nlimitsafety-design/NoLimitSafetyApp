@@ -626,12 +626,7 @@ export default function AvailabilityPage() {
                       {hasAvailable && (
                         <div className="flex items-center gap-0.5 sm:gap-1">
                           <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                          <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">
-                            {dayItems.find((e) => e.type === 'AVAILABLE')?.startTime || ''}
-                            {dayItems.find((e) => e.type === 'AVAILABLE')?.endTime
-                              ? `-${dayItems.find((e) => e.type === 'AVAILABLE')?.endTime}`
-                              : ''}
-                          </span>
+                          <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">Hele dag</span>
                         </div>
                       )}
                       {hasPartial && (
