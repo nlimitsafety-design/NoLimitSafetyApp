@@ -71,6 +71,10 @@ export default function AvailabilityPage() {
   const isEmployee = session?.user?.role === 'EMPLOYEE';
   const isAdmin = session?.user?.role === 'ADMIN' || session?.user?.role === 'MANAGER';
 
+  // Admin: employee selector
+  const { data: employeeList = [] } = useEmployees();
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+
   // Recurring data
   const { data: rawRecurring = [], mutate: mutateRecurring } = useRecurringAvailability();
   const recurring = rawRecurring as RecurringItem[];
