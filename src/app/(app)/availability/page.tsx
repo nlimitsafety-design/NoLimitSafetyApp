@@ -96,11 +96,10 @@ export default function AvailabilityPage() {
   const viewStart = calendarView === 'week' ? format(weekStart, 'yyyy-MM-dd') : format(monthStart, 'yyyy-MM-dd');
   const viewEnd = calendarView === 'week' ? format(weekEnd, 'yyyy-MM-dd') : format(monthEnd, 'yyyy-MM-dd');
 
-  const { data: rawExceptions = [], mutate: mutateExceptions } = useAvailabilityExceptions(viewStart, viewEnd);
+  const { data: rawExceptions = [], mutate: mutateExceptions } = useAvailabilityExceptions(
+    viewStart, viewEnd, isAdmin && selectedEmployeeId ? selectedEmployeeId : undefined
+  );
   const exceptions = rawExceptions as ExceptionItem[];
-
-  // Admin: all employees' availability
-  const { data: allAvailability = [] } = useAvailability(viewStart, viewEnd);
 
   // Recurring section expanded
   const [recurringOpen, setRecurringOpen] = useState(false);
