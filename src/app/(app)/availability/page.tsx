@@ -307,14 +307,14 @@ export default function AvailabilityPage() {
 
     try {
       const isEdit = !!editingPlan;
-      const needsTimes = planForm.type === 'AVAILABLE' || planForm.type === 'PARTIAL';
       const payload = {
         ...(isEdit ? { id: editingPlan!.id } : {}),
         date: planForm.date,
         type: planForm.type,
-        startTime: needsTimes ? planForm.startTime : null,
-        endTime: needsTimes ? planForm.endTime : null,
+        startTime: planForm.type === 'PARTIAL' ? planForm.startTime : null,
+        endTime: planForm.type === 'PARTIAL' ? planForm.endTime : null,
         note: planForm.note || undefined,
+        ...(isAdmin && planForm.targetUserId ? { targetUserId: planForm.targetUserId } : {}),
       };
 
       const res = await fetch('/api/availability-exceptions', {
