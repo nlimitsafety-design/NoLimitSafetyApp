@@ -62,16 +62,16 @@ export async function POST(req: NextRequest) {
 
     const { date, type, startTime, endTime, note } = parsed.data;
 
-    // For AVAILABLE type, startTime and endTime are required
-    if (type === 'AVAILABLE' && (!startTime || !endTime)) {
+    // For AVAILABLE/PARTIAL type, startTime and endTime are required
+    if ((type === 'AVAILABLE' || type === 'PARTIAL') && (!startTime || !endTime)) {
       return NextResponse.json(
-        { error: 'Start- en eindtijd zijn verplicht voor beschikbaar' },
+        { error: 'Start- en eindtijd zijn verplicht' },
         { status: 400 }
       );
     }
 
-    // Validate start < end for AVAILABLE
-    if (type === 'AVAILABLE' && startTime && endTime) {
+    // Validate start < end for AVAILABLE/PARTIAL
+    if ((type === 'AVAILABLE' || type === 'PARTIAL') && startTime && endTime) {
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         return NextResponse.json({ error: 'Starttijd moet voor eindtijd liggen' }, { status: 400 });
       }
