@@ -88,6 +88,47 @@ export async function GET() {
       take: 8,
     });
 
+    // For admin: full week availability grid (all employees x 7 days)
+    let weekAvailabilityGrid: any = null;
+    if (isAdmin || isManager) {
+      const allEmployees = await prisma.user.findMany({
+        where: { active: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      });
+
+      const allExceptions = await prisma.availabilityException.findMany({
+        where: { date: { gte: weekStart, lte: weekEnd } },
+        select: { userId: true, date: true, type: true, startTime: true, endTime: true },
+      });
+
+      // Build lookup: userId -> dateStr -> exception
+      const lookup: Record<string, Record<string, any>> = {};
+      for (const exc of allExceptions) {
+        const uid = exc.userId;
+        const ds = exc.date.toISOString().split('T')[0];
+        if (!lookup[uid]) lookup[uid] = {};
+        lookup[uid][ds] = exc;
+      }
+
+      // Build week days array (Mon-Sun)
+      const days: string[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(weekStart);
+        d.setDate(d.getDate() + i);
+        days.push(d.toISOString().split('T')[0]);
+      }
+
+      weekAvailabilityGrid = {
+        days,
+        employees: allEmployees.map((emp) => ({
+          id: emp.id,
+          name: emp.name,
+          days: days.map((ds) => lookup[emp.id]?.[ds] || null),
+        })),
+      };
+    }
+
     return NextResponse.json({
       totalEmployees,
       activeShifts,
@@ -95,6 +136,7 @@ export async function GET() {
       pendingShifts,
       upcomingShifts,
       recentAvailability,
+      weekAvailabilityGrid,
     });
   } catch (error) {
     console.error('Dashboard error:', error);
