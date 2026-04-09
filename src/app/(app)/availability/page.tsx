@@ -116,7 +116,7 @@ export default function AvailabilityPage() {
   const [editingPlan, setEditingPlan] = useState<ExceptionItem | null>(null);
   const [planForm, setPlanForm] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
-    type: 'AVAILABLE' as 'AVAILABLE' | 'UNAVAILABLE',
+    type: 'AVAILABLE' as 'AVAILABLE' | 'UNAVAILABLE' | 'PARTIAL',
     startTime: '08:00',
     endTime: '17:00',
     note: '',
