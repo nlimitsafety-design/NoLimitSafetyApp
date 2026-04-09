@@ -285,7 +285,7 @@ export default function AvailabilityPage() {
     setEditingPlan(item);
     setPlanForm({
       date: format(new Date(item.date), 'yyyy-MM-dd'),
-      type: item.type as 'AVAILABLE' | 'UNAVAILABLE',
+      type: item.type as 'AVAILABLE' | 'UNAVAILABLE' | 'PARTIAL',
       startTime: item.startTime || '08:00',
       endTime: item.endTime || '17:00',
       note: item.note || '',
