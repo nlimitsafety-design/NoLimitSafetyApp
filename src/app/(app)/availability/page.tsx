@@ -1098,44 +1098,6 @@ export default function AvailabilityPage() {
         </div>
       </Modal>
 
-      {/* ==================== ADMIN: MEDEWERKER OVERZICHT ==================== */}
-      {isAdmin && allAvailability.length > 0 && (
-        <Card className="mt-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Medewerker beschikbaarheid</h2>
-          <div className="space-y-2">
-            {Object.entries(
-              (allAvailability as any[]).reduce((acc: Record<string, any[]>, a: any) => {
-                const key = a.date?.split('T')[0] ?? a.date;
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(a);
-                return acc;
-              }, {})
-            )
-              .sort(([a], [b]) => a.localeCompare(b))
-              .map(([date, entries]) => (
-                <div key={date} className="border border-gray-100 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                    {new Date(date + 'T00:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'short' })}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {(entries as any[]).map((a) => (
-                      <div key={a.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
-                        a.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-                        a.status === 'UNAVAILABLE' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        <span>{a.user?.name}</span>
-                        {a.startTime && <span className="opacity-70">{a.startTime}–{a.endTime}</span>}
-                        {a.note && <span className="opacity-60 italic">· {a.note}</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-        </Card>
-      )}
-
       {/* ==================== FILL MONTH MODAL ==================== */}
       <Modal
         isOpen={fillMonthModal}
