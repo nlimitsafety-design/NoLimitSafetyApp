@@ -125,6 +125,7 @@ export default function AvailabilityPage() {
     startTime: '08:00',
     endTime: '17:00',
     note: '',
+    targetUserId: '',
   });
 
   // Copy week modal
