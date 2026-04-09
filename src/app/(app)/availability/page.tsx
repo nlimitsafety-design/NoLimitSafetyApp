@@ -642,6 +642,10 @@ export default function AvailabilityPage() {
               Beschikbaar
             </div>
             <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-orange-400" />
+              Gedeeltelijk
+            </div>
+            <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-red-400" />
               Niet beschikbaar
             </div>
