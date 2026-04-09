@@ -456,6 +456,21 @@ export default function AvailabilityPage() {
         </div>
       </div>
 
+      {/* ==================== ADMIN EMPLOYEE FILTER ==================== */}
+      {isAdmin && (
+        <div className="mb-4">
+          <Select
+            label=""
+            value={selectedEmployeeId}
+            onChange={(e) => setSelectedEmployeeId(e.target.value)}
+            options={[
+              { value: '', label: 'Alle medewerkers' },
+              ...(employeeList as any[]).map((emp: any) => ({ value: emp.id, label: emp.name })),
+            ]}
+          />
+        </div>
+      )}
+
       {/* ==================== CALENDAR TOOLBAR ==================== */}
       <Card className="mb-4">
         <div className="flex flex-col gap-3">
