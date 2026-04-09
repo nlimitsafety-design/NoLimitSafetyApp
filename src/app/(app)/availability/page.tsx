@@ -704,8 +704,8 @@ export default function AvailabilityPage() {
                           onClick={() => openEditPlan(item)}
                         >
                           <div className="flex items-center justify-between">
-                            <Badge variant={isAvailable ? 'success' : 'danger'} size="sm">
-                              {isAvailable ? 'Beschikbaar' : 'Niet beschikbaar'}
+                            <Badge variant={item.type === 'AVAILABLE' ? 'success' : item.type === 'PARTIAL' ? 'warning' : 'danger'} size="sm">
+                              {item.type === 'AVAILABLE' ? 'Beschikbaar' : item.type === 'PARTIAL' ? 'Gedeeltelijk' : 'Niet beschikbaar'}
                             </Badge>
                             <div className="flex items-center gap-1">
                               <button
