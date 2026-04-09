@@ -597,56 +597,89 @@ export default function AvailabilityPage() {
               return (
                 <div
                   key={dateStr}
-                  onClick={() => dayItems.length === 1 ? openEditPlan(dayItems[0]) : openCreatePlan(day)}
-                  className={`min-h-[56px] sm:min-h-[80px] rounded-lg border p-1 sm:p-2 cursor-pointer transition-all active:scale-[0.97] select-none ${
+                  onClick={() => !isAdmin && (dayItems.length === 1 ? openEditPlan(dayItems[0]) : openCreatePlan(day))}
+                  className={`min-h-[56px] sm:min-h-[80px] rounded-lg border p-1 sm:p-1.5 transition-all select-none ${
+                    isAdmin ? 'cursor-default' : 'cursor-pointer active:scale-[0.97]'
+                  } ${
                     isToday
                       ? 'border-brand-500/50 bg-brand-500/5'
                       : isPast
                         ? 'border-gray-200 bg-gray-50 opacity-50'
                         : weekend
                           ? 'border-gray-200 bg-gray-50'
-                          : 'border-gray-200 bg-gray-50 hover:border-gray-300 active:border-navy-500'
+                          : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between mb-0.5">
                     <span className={`text-xs sm:text-sm font-semibold leading-none ${
                       isToday ? 'text-brand-500' : isPast ? 'text-gray-600' : weekend ? 'text-gray-500' : 'text-gray-900'
                     }`}>
                       {format(day, 'd')}
                     </span>
-                    {dayItems.length > 1 && (
-                      <span className="text-[9px] sm:text-[10px] bg-gray-300 text-gray-600 rounded-full px-1 leading-relaxed">
+                    {isAdmin && dayItems.length > 0 && (
+                      <span className="text-[9px] bg-gray-200 text-gray-600 rounded-full px-1 leading-relaxed">
                         {dayItems.length}
                       </span>
                     )}
                   </div>
 
-                  {dayItems.length > 0 && (
-                    <div className="mt-1 space-y-0.5">
-                      {hasAvailable && (
-                        <div className="flex items-center gap-0.5 sm:gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
-                          <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">Hele dag</span>
-                        </div>
-                      )}
-                      {hasPartial && (
-                        <div className="flex items-center gap-0.5 sm:gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
-                          <span className="text-[9px] sm:text-xs text-orange-400 truncate leading-tight">
-                            {dayItems.find((e) => e.type === 'PARTIAL')?.startTime || ''}
-                            {dayItems.find((e) => e.type === 'PARTIAL')?.endTime
-                              ? `-${dayItems.find((e) => e.type === 'PARTIAL')?.endTime}`
-                              : ''}
-                          </span>
-                        </div>
-                      )}
-                      {hasUnavailable && (
-                        <div className="flex items-center gap-0.5 sm:gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
-                          <span className="text-[9px] sm:text-xs text-red-400 truncate leading-tight">Vrij</span>
-                        </div>
+                  {/* Admin: show employee initials as colored chips */}
+                  {isAdmin ? (
+                    <div className="flex flex-wrap gap-0.5 mt-0.5">
+                      {dayItems.slice(0, 6).map((item) => {
+                        const initials = (item.user?.name || '?')
+                          .split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase();
+                        const color = item.type === 'AVAILABLE'
+                          ? 'bg-green-500 text-white'
+                          : item.type === 'PARTIAL'
+                            ? 'bg-orange-400 text-white'
+                            : 'bg-red-500 text-white';
+                        return (
+                          <button
+                            key={item.id}
+                            title={`${item.user?.name}: ${item.type === 'AVAILABLE' ? 'Hele dag' : item.type === 'PARTIAL' ? `${item.startTime}-${item.endTime}` : 'Niet beschikbaar'}`}
+                            onClick={(e) => { e.stopPropagation(); openEditPlan(item); }}
+                            className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center ${color} hover:opacity-80 transition-opacity`}
+                          >
+                            {initials}
+                          </button>
+                        );
+                      })}
+                      {dayItems.length > 6 && (
+                        <span className="w-5 h-5 rounded bg-gray-300 text-gray-600 text-[9px] font-bold flex items-center justify-center">
+                          +{dayItems.length - 6}
+                        </span>
                       )}
                     </div>
+                  ) : (
+                    /* Employee: colored dots */
+                    dayItems.length > 0 && (
+                      <div className="mt-1 space-y-0.5">
+                        {hasAvailable && (
+                          <div className="flex items-center gap-0.5 sm:gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                            <span className="text-[9px] sm:text-xs text-green-400 truncate leading-tight">Hele dag</span>
+                          </div>
+                        )}
+                        {hasPartial && (
+                          <div className="flex items-center gap-0.5 sm:gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
+                            <span className="text-[9px] sm:text-xs text-orange-400 truncate leading-tight">
+                              {dayItems.find((e) => e.type === 'PARTIAL')?.startTime}
+                              {dayItems.find((e) => e.type === 'PARTIAL')?.endTime
+                                ? `-${dayItems.find((e) => e.type === 'PARTIAL')?.endTime}`
+                                : ''}
+                            </span>
+                          </div>
+                        )}
+                        {hasUnavailable && (
+                          <div className="flex items-center gap-0.5 sm:gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0" />
+                            <span className="text-[9px] sm:text-xs text-red-400 truncate leading-tight">Vrij</span>
+                          </div>
+                        )}
+                      </div>
+                    )
                   )}
                 </div>
               );
