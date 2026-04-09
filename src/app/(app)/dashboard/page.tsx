@@ -15,6 +15,8 @@ import {
   PlusIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
+import { format, startOfWeek, addDays } from 'date-fns';
+import { nl } from 'date-fns/locale';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
