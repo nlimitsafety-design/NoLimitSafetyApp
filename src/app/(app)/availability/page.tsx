@@ -739,12 +739,17 @@ export default function AvailabilityPage() {
                               </button>
                             </div>
                           </div>
-                          {item.startTime && item.endTime ? (
-                            <p className={`mt-1 font-medium ${item.type === 'AVAILABLE' ? 'text-green-400' : item.type === 'PARTIAL' ? 'text-orange-400' : 'text-red-400'}`}>
-                              {item.startTime} - {item.endTime}
-                            </p>
-                          ) : (
-                            <p className="text-red-400 mt-1 font-medium">Hele dag</p>
+                          {item.type === 'AVAILABLE' && (
+                            <p className="mt-1 font-medium text-green-400">Hele dag</p>
+                          )}
+                          {item.type === 'PARTIAL' && item.startTime && item.endTime && (
+                            <p className="mt-1 font-medium text-orange-400">{item.startTime} - {item.endTime}</p>
+                          )}
+                          {item.type === 'UNAVAILABLE' && (
+                            <p className="mt-1 font-medium text-red-400">Hele dag</p>
+                          )}
+                          {isAdmin && item.user && (
+                            <p className="text-gray-500 mt-0.5 text-[10px]">{item.user.name}</p>
                           )}
                           {item.note && <p className="text-gray-500 mt-0.5 italic">{item.note}</p>}
                         </div>
