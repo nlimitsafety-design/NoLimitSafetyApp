@@ -144,14 +144,14 @@ export async function PUT(req: NextRequest) {
 
     const { date, type, startTime, endTime, note } = parsed.data;
 
-    if ((type === 'AVAILABLE' || type === 'PARTIAL') && (!startTime || !endTime)) {
+    if (type === 'PARTIAL' && (!startTime || !endTime)) {
       return NextResponse.json(
-        { error: 'Start- en eindtijd zijn verplicht' },
+        { error: 'Start- en eindtijd zijn verplicht voor gedeeltelijk' },
         { status: 400 }
       );
     }
 
-    if ((type === 'AVAILABLE' || type === 'PARTIAL') && startTime && endTime) {
+    if (type === 'PARTIAL' && startTime && endTime) {
       if (timeToMinutes(startTime) >= timeToMinutes(endTime)) {
         return NextResponse.json({ error: 'Starttijd moet voor eindtijd liggen' }, { status: 400 });
       }
@@ -162,8 +162,8 @@ export async function PUT(req: NextRequest) {
       data: {
         date: new Date(date + 'T00:00:00.000Z'),
         type,
-        startTime: startTime || null,
-        endTime: endTime || null,
+        startTime: type === 'PARTIAL' ? (startTime || null) : null,
+        endTime: type === 'PARTIAL' ? (endTime || null) : null,
         note: note || null,
       },
     });
