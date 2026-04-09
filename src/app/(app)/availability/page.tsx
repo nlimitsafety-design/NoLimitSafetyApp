@@ -57,11 +57,13 @@ interface RecurringItem {
 
 interface ExceptionItem {
   id: string;
+  userId: string;
   date: string;
   type: string;
   startTime: string | null;
   endTime: string | null;
   note: string | null;
+  user?: { id: string; name: string };
 }
 
 export default function AvailabilityPage() {
