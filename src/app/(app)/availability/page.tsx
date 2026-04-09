@@ -569,6 +569,7 @@ export default function AvailabilityPage() {
 
               const hasAvailable = dayItems.some((e) => e.type === 'AVAILABLE');
               const hasUnavailable = dayItems.some((e) => e.type === 'UNAVAILABLE');
+              const hasPartial = dayItems.some((e) => e.type === 'PARTIAL');
 
               return (
                 <div
