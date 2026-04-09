@@ -162,43 +162,43 @@ export default function DashboardPage() {
             )}
           </Card>
 
-          {/* Quick availability overview for admin */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {isAdmin ? 'Recente Beschikbaarheid' : 'Mijn Beschikbaarheid'}
-              </CardTitle>
-              <Link href="/availability" className="text-sm text-brand-500 hover:text-brand-300 flex items-center gap-1">
-                Bekijken <ArrowRightIcon className="h-3 w-3" />
-              </Link>
-            </CardHeader>
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />
-                ))}
-              </div>
-            ) : data?.recentAvailability && data.recentAvailability.length > 0 ? (
-              <div className="space-y-2">
-                {data.recentAvailability.map((a: any) => (
-                  <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      {isAdmin && <p className="text-sm font-medium text-gray-900">{a.user?.name}</p>}
-                      <p className="text-xs text-gray-400">
-                        {formatDate(a.date, 'EEEE d MMM')} - {a.startTime} - {a.endTime}
-                      </p>
-                      {a.note && <p className="text-xs text-gray-500 mt-0.5">{a.note}</p>}
+          {/* Availability overview */}
+          {isAdmin ? (
+            <AvailabilityGrid data={data} loading={loading} />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Mijn Beschikbaarheid</CardTitle>
+                <Link href="/availability" className="text-sm text-brand-500 hover:text-brand-300 flex items-center gap-1">
+                  Bekijken <ArrowRightIcon className="h-3 w-3" />
+                </Link>
+              </CardHeader>
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-12 bg-gray-50 rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : data?.recentAvailability && data.recentAvailability.length > 0 ? (
+                <div className="space-y-2">
+                  {data.recentAvailability.map((a: any) => (
+                    <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-xs text-gray-400">
+                          {formatDate(a.date, 'EEEE d MMM')} {a.startTime && a.endTime ? `- ${a.startTime}-${a.endTime}` : ''}
+                        </p>
+                      </div>
+                      <Badge variant={a.type === 'AVAILABLE' ? 'success' : a.type === 'UNAVAILABLE' ? 'danger' : 'warning'}>
+                        {a.type === 'AVAILABLE' ? 'Beschikbaar' : a.type === 'UNAVAILABLE' ? 'Niet beschikbaar' : 'Gedeeltelijk'}
+                      </Badge>
                     </div>
-                    <Badge variant={a.status === 'AVAILABLE' ? 'success' : a.status === 'UNAVAILABLE' ? 'danger' : 'warning'}>
-                      {a.status === 'AVAILABLE' ? 'Beschikbaar' : a.status === 'UNAVAILABLE' ? 'Niet beschikbaar' : 'Gedeeltelijk'}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm py-8 text-center">Geen beschikbaarheid ingevuld</p>
-            )}
-          </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-sm py-8 text-center">Geen beschikbaarheid ingevuld</p>
+              )}
+            </Card>
+          )}
         </div>
       </div>
   );
