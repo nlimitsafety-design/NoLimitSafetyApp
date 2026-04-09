@@ -902,8 +902,13 @@ export default function AvailabilityPage() {
             </div>
           </div>
 
-          {/* Time inputs for AVAILABLE or PARTIAL */}
-          {(planForm.type === 'AVAILABLE' || planForm.type === 'PARTIAL') && (
+          {planForm.type === 'AVAILABLE' && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+              <p className="text-sm text-green-600 font-medium">Hele dag beschikbaar</p>
+            </div>
+          )}
+          {/* Time inputs only for PARTIAL */}
+          {planForm.type === 'PARTIAL' && (
             <div className="grid grid-cols-2 gap-3">
               <Select
                 label="Van"
