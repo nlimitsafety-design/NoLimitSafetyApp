@@ -833,17 +833,53 @@ export default function AvailabilityPage() {
             onChange={(e) => setPlanForm({ ...planForm, date: e.target.value })}
             required
           />
-          <Select
-            label="Status"
-            value={planForm.type}
-            onChange={(e) => setPlanForm({ ...planForm, type: e.target.value as 'AVAILABLE' | 'UNAVAILABLE' })}
-            options={[
-              { value: 'AVAILABLE', label: 'Beschikbaar' },
-              { value: 'UNAVAILABLE', label: 'Niet beschikbaar (hele dag vrij)' },
-            ]}
-          />
-          {planForm.type === 'AVAILABLE' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+
+          {/* Quick status buttons */}
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-2">Status</p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPlanForm({ ...planForm, type: 'AVAILABLE' })}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all ${
+                  planForm.type === 'AVAILABLE'
+                    ? 'border-green-500 bg-green-500/10 text-green-600'
+                    : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-green-300 hover:text-green-500'
+                }`}
+              >
+                <span className="text-xl">🟢</span>
+                <span>Beschikbaar</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanForm({ ...planForm, type: 'PARTIAL' })}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all ${
+                  planForm.type === 'PARTIAL'
+                    ? 'border-orange-400 bg-orange-400/10 text-orange-600'
+                    : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-orange-300 hover:text-orange-500'
+                }`}
+              >
+                <span className="text-xl">🟠</span>
+                <span>Gedeeltelijk</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPlanForm({ ...planForm, type: 'UNAVAILABLE' })}
+                className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-xl border-2 font-semibold text-xs transition-all ${
+                  planForm.type === 'UNAVAILABLE'
+                    ? 'border-red-500 bg-red-500/10 text-red-600'
+                    : 'border-gray-200 bg-gray-50 text-gray-400 hover:border-red-300 hover:text-red-500'
+                }`}
+              >
+                <span className="text-xl">🔴</span>
+                <span>Niet beschikbaar</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Time inputs for AVAILABLE or PARTIAL */}
+          {(planForm.type === 'AVAILABLE' || planForm.type === 'PARTIAL') && (
+            <div className="grid grid-cols-2 gap-3">
               <Select
                 label="Van"
                 value={planForm.startTime}
@@ -860,9 +896,10 @@ export default function AvailabilityPage() {
           )}
           {planForm.type === 'UNAVAILABLE' && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-              <p className="text-sm text-red-400">Je bent deze hele dag niet beschikbaar.</p>
+              <p className="text-sm text-red-500 font-medium">Hele dag niet beschikbaar</p>
             </div>
           )}
+
           <Textarea
             label="Opmerking (optioneel)"
             value={planForm.note}
