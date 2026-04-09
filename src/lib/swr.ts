@@ -52,10 +52,11 @@ export function useRecurringAvailability() {
   return useSWR<any[]>('/api/recurring-availability', fetcher, swrDefaults);
 }
 
-export function useAvailabilityExceptions(start?: string, end?: string) {
+export function useAvailabilityExceptions(start?: string, end?: string, userId?: string) {
   const params = new URLSearchParams();
   if (start) params.set('start', start);
   if (end) params.set('end', end);
+  if (userId) params.set('userId', userId);
   const key = `/api/availability-exceptions?${params}`;
   return useSWR<any[]>(key, fetcher, swrDefaults);
 }
