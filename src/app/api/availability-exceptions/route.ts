@@ -15,12 +15,21 @@ export async function GET(req: NextRequest) {
 
   try {
     const user = session!.user as any;
+    const isAdmin = user.role === 'ADMIN' || user.role === 'MANAGER';
     const { searchParams } = new URL(req.url);
     const start = searchParams.get('start');
     const end = searchParams.get('end');
-    const userId = user.role === 'ADMIN' ? (searchParams.get('userId') || user.id) : user.id;
+    const userIdParam = searchParams.get('userId');
 
-    const where: any = { userId };
+    const where: any = {};
+
+    // Admin: filter by specific user or get all; Employee: own only
+    if (!isAdmin) {
+      where.userId = user.id;
+    } else if (userIdParam) {
+      where.userId = userIdParam;
+    }
+
     if (start && end) {
       where.date = {
         gte: new Date(start + 'T00:00:00.000Z'),
@@ -30,6 +39,7 @@ export async function GET(req: NextRequest) {
 
     const items = await prisma.availabilityException.findMany({
       where,
+      include: { user: { select: { id: true, name: true } } },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
     });
 
