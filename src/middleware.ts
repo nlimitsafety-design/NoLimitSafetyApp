@@ -77,6 +77,9 @@ export default async function middleware(req: NextRequest) {
   if (isProtected) {
     // Create an auth middleware instance
     const authMiddleware = withAuth({
+      pages: {
+        signIn: '/login',
+      },
       callbacks: {
         authorized: ({ token }) => !!token,
       },
