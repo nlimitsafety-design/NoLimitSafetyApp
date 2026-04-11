@@ -1,7 +1,7 @@
 ﻿'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
