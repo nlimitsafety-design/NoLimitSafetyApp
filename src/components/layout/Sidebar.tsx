@@ -21,6 +21,7 @@ import {
   ChatBubbleLeftRightIcon,
   BuildingOfficeIcon,
   ShieldCheckIcon,
+  DocumentCheckIcon,
 } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import NotificationBell from "@/components/NotificationBell";
