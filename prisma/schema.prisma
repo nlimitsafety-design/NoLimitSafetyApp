@@ -319,3 +319,21 @@ model Message {
   @@index([senderId])
   @@map("messages")
 }
+
+model Certificaat {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String   // VCA, VCA_VOL, MANGATWACHT, GASMETEN, BHV, EHBO, RESCUE, ANDERS
+  customName      String?  // alleen voor type ANDERS
+  expiryDate      DateTime
+  notifiedSoon    Boolean  @default(false) // 3 maanden waarschuwing verstuurd
+  notifiedExpired Boolean  @default(false) // verlopen melding verstuurd
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiryDate])
+  @@map("certificaten")
+}
