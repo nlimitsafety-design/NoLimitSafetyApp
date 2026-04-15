@@ -32,6 +32,7 @@ model User {
   conversationMembers      ConversationMember[]
   sentMessages             Message[]
   createdConversations     Conversation[] @relation("conversationCreator")
+  certificaten             Certificaat[]
 
   @@map("users")
 }
