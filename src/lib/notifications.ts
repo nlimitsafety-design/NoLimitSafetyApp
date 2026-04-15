@@ -5,14 +5,16 @@ import { sendPushNotifications } from '@/lib/push';
 
 /**
  * Notification types:
- * - SHIFT_ASSIGNED:   You've been assigned to a shift
- * - SHIFT_REMOVED:    You've been removed from a shift
- * - SHIFT_UPDATED:    A shift you're assigned to has been updated
- * - SHIFT_DELETED:    A shift you were assigned to has been deleted
- * - REQUEST_APPROVED: Your shift request was approved
- * - REQUEST_REJECTED: Your shift request was rejected
- * - NEW_REQUEST:      An employee requested an open shift (admin notification)
- * - NEW_OPEN_SHIFT:   A new open shift is available
+ * - SHIFT_ASSIGNED:      You've been assigned to a shift
+ * - SHIFT_REMOVED:       You've been removed from a shift
+ * - SHIFT_UPDATED:       A shift you're assigned to has been updated
+ * - SHIFT_DELETED:       A shift you were assigned to has been deleted
+ * - REQUEST_APPROVED:    Your shift request was approved
+ * - REQUEST_REJECTED:    Your shift request was rejected
+ * - NEW_REQUEST:         An employee requested an open shift (admin notification)
+ * - NEW_OPEN_SHIFT:      A new open shift is available
+ * - CERT_EXPIRING_SOON:  A certificate expires within 3 months
+ * - CERT_EXPIRED:        A certificate has expired
  */
 
 interface CreateNotificationParams {
