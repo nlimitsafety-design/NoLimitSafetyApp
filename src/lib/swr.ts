@@ -131,3 +131,14 @@ export function useConversation(id: string | null) {
     revalidateOnFocus: true,
   });
 }
+
+export function useCertificaten(userId?: string) {
+  const params = new URLSearchParams();
+  if (userId) params.set('userId', userId);
+  const key = `/api/certificaten?${params}`;
+  return useSWR<any[]>(key, fetcher, swrDefaults);
+}
+
+export function useAllCertificaten() {
+  return useSWR<any[]>('/api/certificaten?all=true', fetcher, swrDefaults);
+}
