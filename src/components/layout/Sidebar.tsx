@@ -90,6 +90,13 @@ const navigation = [
     roles: ["ADMIN"],
   },
   {
+    name: "Certificaten",
+    employeeName: "Mijn Certificaten",
+    href: "/certificaten",
+    icon: DocumentCheckIcon,
+    roles: ["ADMIN", "MANAGER", "EMPLOYEE"],
+  },
+  {
     name: "Berichten",
     employeeName: "Berichten",
     href: "/berichten",
