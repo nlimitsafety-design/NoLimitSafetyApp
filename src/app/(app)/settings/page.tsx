@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const { data: profile, isLoading: profileLoading, mutate: mutateProfile } = useProfile();
 
   // Profile form state
-  const [profileForm, setProfileForm] = useState({ name: '', phone: '', email: '' });
+  const [profileForm, setProfileForm] = useState({ name: '', voorletter: '', phone: '', email: '' });
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('');
@@ -55,7 +55,7 @@ export default function SettingsPage() {
   // Sync form when profile loads
   useEffect(() => {
     if (profile) {
-      setProfileForm({ name: profile.name, phone: profile.phone || '', email: profile.email || '' });
+      setProfileForm({ name: profile.name, voorletter: profile.voorletter || '', phone: profile.phone || '', email: profile.email || '' });
     }
   }, [profile]);
 
@@ -170,6 +170,13 @@ export default function SettingsPage() {
                 value={profileForm.name}
                 onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
                 required
+              />
+              <Input
+                label="Voorletter"
+                value={profileForm.voorletter}
+                onChange={(e) => setProfileForm({ ...profileForm, voorletter: e.target.value })}
+                placeholder="bijv. J"
+                maxLength={10}
               />
               <Input
                 label="E-mail"

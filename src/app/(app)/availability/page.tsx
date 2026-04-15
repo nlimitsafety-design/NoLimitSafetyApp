@@ -43,11 +43,12 @@ import {
 import { nl } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 
-function shortName(name?: string | null): string {
+function shortName(name?: string | null, voorletter?: string | null): string {
   if (!name) return '?';
   const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0];
-  return `${parts.slice(1).join(' ')} ${parts[0].charAt(0).toUpperCase()}.`;
+  const initial = (voorletter?.trim() || parts[0].charAt(0)).toUpperCase();
+  if (parts.length === 1) return `${parts[0]} ${initial}.`;
+  return `${parts.slice(1).join(' ')} ${initial}.`;
 }
 
 type CalendarView = 'week' | 'month';
@@ -630,14 +631,10 @@ export default function AvailabilityPage() {
                     )}
                   </div>
 
-                  {/* Admin: show employee initials as colored chips */}
+                  {/* Admin: show employee names as colored chips */}
                   {isAdmin ? (
                     <div className="flex flex-wrap gap-0.5 mt-0.5">
-                      {dayItems.slice(0, 6).map((item) => {
-                        const nameParts = (item.user?.name || '?').trim().split(/\s+/);
-                        const firstInitial = nameParts[0][0];
-                        const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : '';
-                        const initials = (lastInitial + firstInitial).toUpperCase();
+                      {dayItems.slice(0, 4).map((item) => {
                         const color = item.type === 'AVAILABLE'
                           ? 'bg-green-500 text-white'
                           : item.type === 'PARTIAL'
@@ -646,17 +643,17 @@ export default function AvailabilityPage() {
                         return (
                           <button
                             key={item.id}
-                            title={`${shortName(item.user?.name)}: ${item.type === 'AVAILABLE' ? 'Hele dag' : item.type === 'PARTIAL' ? `${item.startTime}-${item.endTime}` : 'Niet beschikbaar'}`}
+                            title={`${shortName(item.user?.name, item.user?.voorletter)}: ${item.type === 'AVAILABLE' ? 'Hele dag' : item.type === 'PARTIAL' ? `${item.startTime}-${item.endTime}` : 'Niet beschikbaar'}`}
                             onClick={(e) => { e.stopPropagation(); openEditPlan(item); }}
-                            className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center ${color} hover:opacity-80 transition-opacity`}
+                            className={`rounded px-1 py-0.5 text-[9px] font-medium leading-tight ${color} hover:opacity-80 transition-opacity max-w-[4.5rem] truncate`}
                           >
-                            {initials}
+                            {shortName(item.user?.name, item.user?.voorletter)}
                           </button>
                         );
                       })}
-                      {dayItems.length > 6 && (
-                        <span className="w-5 h-5 rounded bg-gray-300 text-gray-600 text-[9px] font-bold flex items-center justify-center">
-                          +{dayItems.length - 6}
+                      {dayItems.length > 4 && (
+                        <span className="rounded bg-gray-300 text-gray-600 text-[9px] font-bold px-1 py-0.5 leading-tight">
+                          +{dayItems.length - 4}
                         </span>
                       )}
                     </div>
@@ -791,7 +788,7 @@ export default function AvailabilityPage() {
                             <p className="mt-1 font-medium text-red-400">Hele dag</p>
                           )}
                           {isAdmin && item.user && (
-                            <p className="text-gray-500 mt-0.5 text-[10px]">{shortName(item.user.name)}</p>
+                            <p className="text-gray-500 mt-0.5 text-[10px]">{shortName(item.user.name, item.user.voorletter)}</p>
                           )}
                           {item.note && <p className="text-gray-500 mt-0.5 italic">{item.note}</p>}
                         </div>

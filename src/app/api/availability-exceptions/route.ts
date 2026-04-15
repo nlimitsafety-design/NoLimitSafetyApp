@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
 
     const items = await prisma.availabilityException.findMany({
       where,
-      include: { user: { select: { id: true, name: true } } },
+      include: { user: { select: { id: true, name: true, voorletter: true } } },
       orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
     });
 

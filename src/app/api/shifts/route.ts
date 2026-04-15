@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
         shiftUsers: {
           include: {
             user: {
-              select: { id: true, name: true, email: true, hourlyRate: isAdmin || isManager },
+              select: { id: true, name: true, voorletter: true, email: true, hourlyRate: isAdmin || isManager },
             },
           },
         },
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
         },
         include: {
           shiftUsers: {
-            include: { user: { select: { id: true, name: true, email: true } } },
+            include: { user: { select: { id: true, name: true, voorletter: true, email: true } } },
           },
         },
       });

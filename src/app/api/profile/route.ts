@@ -5,6 +5,7 @@ import { z } from 'zod';
 
 const profileUpdateSchema = z.object({
   name: z.string().min(2, 'Naam moet minimaal 2 tekens bevatten').optional(),
+  voorletter: z.string().max(10).optional().nullable(),
   phone: z.string().optional(),
   email: z.string().email('Ongeldig e-mailadres').optional(),
 });
@@ -21,6 +22,7 @@ export async function GET() {
       select: {
         id: true,
         name: true,
+        voorletter: true,
         email: true,
         phone: true,
         role: true,
@@ -55,7 +57,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.errors[0].message }, { status: 400 });
     }
 
-    const { name, phone, email } = parsed.data;
+    const { name, voorletter, phone, email } = parsed.data;
 
     // If email is being changed, check for duplicates
     if (email && email.toLowerCase() !== user.email.toLowerCase()) {
@@ -69,6 +71,7 @@ export async function PUT(req: NextRequest) {
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
+    if (voorletter !== undefined) updateData.voorletter = voorletter || null;
     if (phone !== undefined) updateData.phone = phone || null;
     if (email !== undefined) updateData.email = email.toLowerCase();
 
@@ -78,6 +81,7 @@ export async function PUT(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        voorletter: true,
         email: true,
         phone: true,
         role: true,
