@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const {differenceInDays,isPast,isWithinInterval,addMonths,format}=require\\('date-fns'\\); console.log\\('date-fns ok'\\)\")"
     ],
     "additionalDirectories": [
       "e:\\Users\\zsaba\\code\\NoLimitSafetyApp-main\\src\\app\\api\\certificaten"

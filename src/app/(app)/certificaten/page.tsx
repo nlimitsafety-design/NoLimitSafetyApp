@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
-import { useCertificaten, useAllCertificaten, useEmployees } from '@/lib/swr';
-import Card from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import { useState, useMemo } from "react";
+import { useSession } from "next-auth/react";
+import { useCertificaten, useAllCertificaten, useEmployees } from "@/lib/swr";
+import Card from "@/components/ui/Card";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 import {
   DocumentCheckIcon,
   PlusIcon,
@@ -16,23 +16,29 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   ArrowPathIcon,
-} from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
-import { format, differenceInDays, isPast, isWithinInterval, addMonths } from 'date-fns';
-import { nl } from 'date-fns/locale';
+} from "@heroicons/react/24/outline";
+import toast from "react-hot-toast";
+import {
+  format,
+  differenceInDays,
+  isPast,
+  isWithinInterval,
+  addMonths,
+} from "date-fns";
+import { nl } from "date-fns/locale";
 
 const CERT_TYPES = [
-  { value: 'VCA', label: 'VCA' },
-  { value: 'VCA_VOL', label: 'VCA VOL' },
-  { value: 'MANGATWACHT', label: 'Mangatwacht' },
-  { value: 'GASMETEN', label: 'Gasmeten' },
-  { value: 'BHV', label: 'BHV' },
-  { value: 'EHBO', label: 'EHBO' },
-  { value: 'RESCUE', label: 'Rescue' },
-  { value: 'ANDERS', label: 'Anders' },
+  { value: "VCA", label: "VCA" },
+  { value: "VCA_VOL", label: "VCA VOL" },
+  { value: "MANGATWACHT", label: "Mangatwacht" },
+  { value: "GASMETEN", label: "Gasmeten" },
+  { value: "BHV", label: "BHV" },
+  { value: "EHBO", label: "EHBO" },
+  { value: "RESCUE", label: "Rescue" },
+  { value: "ANDERS", label: "Anders" },
 ] as const;
 
-type CertType = (typeof CERT_TYPES)[number]['value'];
+type CertType = (typeof CERT_TYPES)[number]["value"];
 
 interface CertFormState {
   type: CertType;
@@ -41,30 +47,37 @@ interface CertFormState {
   userId?: string;
 }
 
-const EMPTY_FORM: CertFormState = { type: 'VCA', customName: '', expiryDate: '' };
+const EMPTY_FORM: CertFormState = {
+  type: "VCA",
+  customName: "",
+  expiryDate: "",
+};
 
 function certLabel(type: string, customName?: string | null): string {
   const found = CERT_TYPES.find((c) => c.value === type);
-  if (type === 'ANDERS' && customName) return customName;
+  if (type === "ANDERS" && customName) return customName;
   return found?.label ?? type;
 }
 
 function getStatus(expiryDate: string) {
   const date = new Date(expiryDate);
   const now = new Date();
-  if (isPast(date)) return 'expired';
-  if (isWithinInterval(now, { start: now, end: addMonths(date, 0) }) && differenceInDays(date, now) <= 90)
-    return 'soon';
-  return 'valid';
+  if (isPast(date)) return "expired";
+  if (
+    isWithinInterval(now, { start: now, end: addMonths(date, 0) }) &&
+    differenceInDays(date, now) <= 90
+  )
+    return "soon";
+  return "valid";
 }
 
 function StatusBadge({ expiryDate }: { expiryDate: string }) {
   const status = getStatus(expiryDate);
   const date = new Date(expiryDate);
   const daysLeft = differenceInDays(date, new Date());
-  const dateStr = format(date, 'd MMM yyyy', { locale: nl });
+  const dateStr = format(date, "d MMM yyyy", { locale: nl });
 
-  if (status === 'expired') {
+  if (status === "expired") {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-full px-2.5 py-1">
         <ExclamationTriangleIcon className="h-3.5 w-3.5" />
@@ -72,7 +85,7 @@ function StatusBadge({ expiryDate }: { expiryDate: string }) {
       </span>
     );
   }
-  if (status === 'soon') {
+  if (status === "soon") {
     return (
       <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
         <ClockIcon className="h-3.5 w-3.5" />
@@ -109,10 +122,12 @@ function CertForm({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
       {showUserSelect && employees && (
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Medewerker</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Medewerker
+          </label>
           <select
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-            value={form.userId ?? ''}
+            value={form.userId ?? ""}
             onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}
           >
             <option value="">Kies medewerker…</option>
@@ -126,11 +141,15 @@ function CertForm({
       )}
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Certificaattype</label>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          Certificaattype
+        </label>
         <select
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           value={form.type}
-          onChange={(e) => setForm((f) => ({ ...f, type: e.target.value as CertType }))}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, type: e.target.value as CertType }))
+          }
         >
           {CERT_TYPES.map((c) => (
             <option key={c.value} value={c.value}>
@@ -140,25 +159,33 @@ function CertForm({
         </select>
       </div>
 
-      {form.type === 'ANDERS' && (
+      {form.type === "ANDERS" && (
         <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Naam certificaat</label>
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Naam certificaat
+          </label>
           <input
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             placeholder="Bijv. Hoogwerker..."
             value={form.customName}
-            onChange={(e) => setForm((f) => ({ ...f, customName: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, customName: e.target.value }))
+            }
           />
         </div>
       )}
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Vervaldatum</label>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          Vervaldatum
+        </label>
         <input
           type="date"
           className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           value={form.expiryDate}
-          onChange={(e) => setForm((f) => ({ ...f, expiryDate: e.target.value }))}
+          onChange={(e) =>
+            setForm((f) => ({ ...f, expiryDate: e.target.value }))
+          }
         />
       </div>
 
@@ -184,66 +211,102 @@ function MyCertificaten() {
   const [saving, setSaving] = useState(false);
 
   async function handleAdd(form: CertFormState) {
-    if (!form.expiryDate) { toast.error('Vul een vervaldatum in'); return; }
-    if (form.type === 'ANDERS' && !form.customName.trim()) { toast.error('Vul een naam in'); return; }
+    if (!form.expiryDate) {
+      toast.error("Vul een vervaldatum in");
+      return;
+    }
+    if (form.type === "ANDERS" && !form.customName.trim()) {
+      toast.error("Vul een naam in");
+      return;
+    }
     setSaving(true);
     try {
-      const res = await fetch('/api/certificaten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: form.type, customName: form.customName, expiryDate: form.expiryDate }),
+      const res = await fetch("/api/certificaten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: form.type,
+          customName: form.customName,
+          expiryDate: form.expiryDate,
+        }),
       });
       if (res.ok) {
-        toast.success('Certificaat toegevoegd');
+        toast.success("Certificaat toegevoegd");
         setAdding(false);
         mutate();
       } else {
         const d = await res.json();
-        toast.error(d.error || 'Aanmaken mislukt');
+        toast.error(d.error || "Aanmaken mislukt");
       }
-    } catch { toast.error('Er ging iets mis'); }
-    finally { setSaving(false); }
+    } catch {
+      toast.error("Er ging iets mis");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleEdit(id: string, form: CertFormState) {
-    if (!form.expiryDate) { toast.error('Vul een vervaldatum in'); return; }
+    if (!form.expiryDate) {
+      toast.error("Vul een vervaldatum in");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/certificaten/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: form.type, customName: form.customName, expiryDate: form.expiryDate }),
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: form.type,
+          customName: form.customName,
+          expiryDate: form.expiryDate,
+        }),
       });
       if (res.ok) {
-        toast.success('Certificaat bijgewerkt');
+        toast.success("Certificaat bijgewerkt");
         setEditingId(null);
         mutate();
       } else {
         const d = await res.json();
-        toast.error(d.error || 'Bijwerken mislukt');
+        toast.error(d.error || "Bijwerken mislukt");
       }
-    } catch { toast.error('Er ging iets mis'); }
-    finally { setSaving(false); }
+    } catch {
+      toast.error("Er ging iets mis");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string, label: string) {
     if (!confirm(`Verwijder certificaat "${label}"?`)) return;
     try {
-      const res = await fetch(`/api/certificaten/${id}`, { method: 'DELETE' });
-      if (res.ok) { toast.success('Certificaat verwijderd'); mutate(); }
-      else { const d = await res.json(); toast.error(d.error || 'Verwijderen mislukt'); }
-    } catch { toast.error('Er ging iets mis'); }
+      const res = await fetch(`/api/certificaten/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Certificaat verwijderd");
+        mutate();
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Verwijderen mislukt");
+      }
+    } catch {
+      toast.error("Er ging iets mis");
+    }
   }
 
-  const expiredCount = certificaten.filter((c: any) => getStatus(c.expiryDate) === 'expired').length;
-  const soonCount = certificaten.filter((c: any) => getStatus(c.expiryDate) === 'soon').length;
+  const expiredCount = certificaten.filter(
+    (c: any) => getStatus(c.expiryDate) === "expired",
+  ).length;
+  const soonCount = certificaten.filter(
+    (c: any) => getStatus(c.expiryDate) === "soon",
+  ).length;
 
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Mijn Certificaten</h1>
-          <p className="page-subtitle">Beheer je certificaten en vervaldatums</p>
+          <p className="page-subtitle">
+            Beheer je certificaten en vervaldatums
+          </p>
         </div>
         {!adding && (
           <Button onClick={() => setAdding(true)}>
@@ -258,13 +321,14 @@ function MyCertificaten() {
           {expiredCount > 0 && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm font-medium">
               <ExclamationTriangleIcon className="h-4 w-4" />
-              {expiredCount} verlopen certificaat{expiredCount > 1 ? 'en' : ''}
+              {expiredCount} verlopen certificaat{expiredCount > 1 ? "en" : ""}
             </div>
           )}
           {soonCount > 0 && (
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-2.5 text-sm font-medium">
               <ClockIcon className="h-4 w-4" />
-              {soonCount} certificaat{soonCount > 1 ? 'en verlopen' : ' verloopt'} binnenkort
+              {soonCount} certificaat
+              {soonCount > 1 ? "en verlopen" : " verloopt"} binnenkort
             </div>
           )}
         </div>
@@ -272,7 +336,9 @@ function MyCertificaten() {
 
       {adding && (
         <Card className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Nieuw certificaat</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Nieuw certificaat
+          </p>
           <CertForm
             initial={EMPTY_FORM}
             onSave={handleAdd}
@@ -287,7 +353,9 @@ function MyCertificaten() {
           <div className="text-center py-10">
             <DocumentCheckIcon className="h-12 w-12 text-gray-300 mx-auto mb-3" />
             <p className="text-gray-500">Nog geen certificaten toegevoegd</p>
-            <p className="text-sm text-gray-400 mt-1">Klik op &ldquo;Certificaat toevoegen&rdquo; om te beginnen</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Klik op &ldquo;Certificaat toevoegen&rdquo; om te beginnen
+            </p>
           </div>
         </Card>
       ) : (
@@ -298,8 +366,8 @@ function MyCertificaten() {
                 <CertForm
                   initial={{
                     type: cert.type as CertType,
-                    customName: cert.customName ?? '',
-                    expiryDate: cert.expiryDate.split('T')[0],
+                    customName: cert.customName ?? "",
+                    expiryDate: cert.expiryDate.split("T")[0],
                   }}
                   onSave={(form) => handleEdit(cert.id, form)}
                   onCancel={() => setEditingId(null)}
@@ -322,7 +390,12 @@ function MyCertificaten() {
                       <PencilSquareIcon className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(cert.id, certLabel(cert.type, cert.customName))}
+                      onClick={() =>
+                        handleDelete(
+                          cert.id,
+                          certLabel(cert.type, cert.customName),
+                        )
+                      }
                       className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       title="Verwijderen"
                     >
@@ -348,65 +421,118 @@ function AdminCertificaten() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
-  const [filterUserId, setFilterUserId] = useState('');
+  const [filterUserId, setFilterUserId] = useState("");
 
   async function handleAdd(form: CertFormState) {
-    if (!form.expiryDate) { toast.error('Vul een vervaldatum in'); return; }
-    if (!form.userId) { toast.error('Selecteer een medewerker'); return; }
-    if (form.type === 'ANDERS' && !form.customName.trim()) { toast.error('Vul een naam in'); return; }
+    if (!form.expiryDate) {
+      toast.error("Vul een vervaldatum in");
+      return;
+    }
+    if (!form.userId) {
+      toast.error("Selecteer een medewerker");
+      return;
+    }
+    if (form.type === "ANDERS" && !form.customName.trim()) {
+      toast.error("Vul een naam in");
+      return;
+    }
     setSaving(true);
     try {
-      const res = await fetch('/api/certificaten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: form.type, customName: form.customName, expiryDate: form.expiryDate, userId: form.userId }),
+      const res = await fetch("/api/certificaten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: form.type,
+          customName: form.customName,
+          expiryDate: form.expiryDate,
+          userId: form.userId,
+        }),
       });
-      if (res.ok) { toast.success('Certificaat toegevoegd'); setAdding(false); mutate(); }
-      else { const d = await res.json(); toast.error(d.error || 'Aanmaken mislukt'); }
-    } catch { toast.error('Er ging iets mis'); }
-    finally { setSaving(false); }
+      if (res.ok) {
+        toast.success("Certificaat toegevoegd");
+        setAdding(false);
+        mutate();
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Aanmaken mislukt");
+      }
+    } catch {
+      toast.error("Er ging iets mis");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleEdit(id: string, form: CertFormState) {
-    if (!form.expiryDate) { toast.error('Vul een vervaldatum in'); return; }
+    if (!form.expiryDate) {
+      toast.error("Vul een vervaldatum in");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch(`/api/certificaten/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: form.type, customName: form.customName, expiryDate: form.expiryDate }),
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: form.type,
+          customName: form.customName,
+          expiryDate: form.expiryDate,
+        }),
       });
-      if (res.ok) { toast.success('Certificaat bijgewerkt'); setEditingId(null); mutate(); }
-      else { const d = await res.json(); toast.error(d.error || 'Bijwerken mislukt'); }
-    } catch { toast.error('Er ging iets mis'); }
-    finally { setSaving(false); }
+      if (res.ok) {
+        toast.success("Certificaat bijgewerkt");
+        setEditingId(null);
+        mutate();
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Bijwerken mislukt");
+      }
+    } catch {
+      toast.error("Er ging iets mis");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete(id: string, label: string) {
     if (!confirm(`Verwijder certificaat "${label}"?`)) return;
     try {
-      const res = await fetch(`/api/certificaten/${id}`, { method: 'DELETE' });
-      if (res.ok) { toast.success('Certificaat verwijderd'); mutate(); }
-      else { const d = await res.json(); toast.error(d.error || 'Verwijderen mislukt'); }
-    } catch { toast.error('Er ging iets mis'); }
+      const res = await fetch(`/api/certificaten/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Certificaat verwijderd");
+        mutate();
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Verwijderen mislukt");
+      }
+    } catch {
+      toast.error("Er ging iets mis");
+    }
   }
 
   async function handleCheckExpiry() {
     setChecking(true);
     try {
-      const res = await fetch('/api/certificaten/check-expiry');
+      const res = await fetch("/api/certificaten/check-expiry");
       if (res.ok) {
         const d = await res.json();
-        toast.success(`Controle klaar — ${d.notifiedSoon} bijna-verlopen, ${d.notifiedExpired} verlopen meldingen verstuurd`);
+        toast.success(
+          `Controle klaar — ${d.notifiedSoon} bijna-verlopen, ${d.notifiedExpired} verlopen meldingen verstuurd`,
+        );
         mutate();
       } else {
-        toast.error('Controle mislukt');
+        toast.error("Controle mislukt");
       }
-    } catch { toast.error('Er ging iets mis'); }
-    finally { setChecking(false); }
+    } catch {
+      toast.error("Er ging iets mis");
+    } finally {
+      setChecking(false);
+    }
   }
 
-  const filtered = filterUserId ? allCerts.filter((c: any) => c.userId === filterUserId) : allCerts;
+  const filtered = filterUserId
+    ? allCerts.filter((c: any) => c.userId === filterUserId)
+    : allCerts;
 
   // Group by employee for overview
   const byEmployee = useMemo(() => {
@@ -417,21 +543,33 @@ function AdminCertificaten() {
       }
       map.get(cert.userId)!.certs.push(cert);
     }
-    return Array.from(map.values()).sort((a, b) => a.user.name.localeCompare(b.user.name));
+    return Array.from(map.values()).sort((a, b) =>
+      a.user.name.localeCompare(b.user.name),
+    );
   }, [filtered]);
 
-  const expiredCount = allCerts.filter((c: any) => getStatus(c.expiryDate) === 'expired').length;
-  const soonCount = allCerts.filter((c: any) => getStatus(c.expiryDate) === 'soon').length;
+  const expiredCount = allCerts.filter(
+    (c: any) => getStatus(c.expiryDate) === "expired",
+  ).length;
+  const soonCount = allCerts.filter(
+    (c: any) => getStatus(c.expiryDate) === "soon",
+  ).length;
 
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="page-title">Certificaten</h1>
-          <p className="page-subtitle">Overzicht van alle certificaten per medewerker</p>
+          <p className="page-subtitle">
+            Overzicht van alle certificaten per medewerker
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" onClick={handleCheckExpiry} loading={checking}>
+          <Button
+            variant="ghost"
+            onClick={handleCheckExpiry}
+            loading={checking}
+          >
             <ArrowPathIcon className="h-4 w-4 mr-2" />
             Verloop controleren
           </Button>
@@ -449,13 +587,14 @@ function AdminCertificaten() {
           {expiredCount > 0 && (
             <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-sm font-medium">
               <ExclamationTriangleIcon className="h-4 w-4" />
-              {expiredCount} verlopen certificaat{expiredCount > 1 ? 'en' : ''}
+              {expiredCount} verlopen certificaat{expiredCount > 1 ? "en" : ""}
             </div>
           )}
           {soonCount > 0 && (
             <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-4 py-2.5 text-sm font-medium">
               <ClockIcon className="h-4 w-4" />
-              {soonCount} certificaat{soonCount > 1 ? 'en verlopen' : ' verloopt'} binnenkort
+              {soonCount} certificaat
+              {soonCount > 1 ? "en verlopen" : " verloopt"} binnenkort
             </div>
           )}
         </div>
@@ -463,9 +602,11 @@ function AdminCertificaten() {
 
       {adding && (
         <Card className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3">Certificaat toevoegen voor medewerker</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">
+            Certificaat toevoegen voor medewerker
+          </p>
           <CertForm
-            initial={{ ...EMPTY_FORM, userId: '' }}
+            initial={{ ...EMPTY_FORM, userId: "" }}
             onSave={handleAdd}
             onCancel={() => setAdding(false)}
             saving={saving}
@@ -478,7 +619,9 @@ function AdminCertificaten() {
       {/* Filter */}
       <Card className="mb-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Filter op medewerker:</label>
+          <label className="text-sm font-medium text-gray-600 whitespace-nowrap">
+            Filter op medewerker:
+          </label>
           <select
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
             value={filterUserId}
@@ -519,8 +662,8 @@ function AdminCertificaten() {
                       <CertForm
                         initial={{
                           type: cert.type as CertType,
-                          customName: cert.customName ?? '',
-                          expiryDate: cert.expiryDate.split('T')[0],
+                          customName: cert.customName ?? "",
+                          expiryDate: cert.expiryDate.split("T")[0],
                         }}
                         onSave={(form) => handleEdit(cert.id, form)}
                         onCancel={() => setEditingId(null)}
@@ -543,7 +686,12 @@ function AdminCertificaten() {
                             <PencilSquareIcon className="h-4 w-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(cert.id, certLabel(cert.type, cert.customName))}
+                            onClick={() =>
+                              handleDelete(
+                                cert.id,
+                                certLabel(cert.type, cert.customName),
+                              )
+                            }
                             className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                             title="Verwijderen"
                           >
@@ -568,7 +716,7 @@ function AdminCertificaten() {
 export default function CertificatenPage() {
   const { data: session } = useSession();
   const role = (session?.user as any)?.role;
-  const isAdminOrManager = role === 'ADMIN' || role === 'MANAGER';
+  const isAdminOrManager = role === "ADMIN" || role === "MANAGER";
 
   if (isAdminOrManager) return <AdminCertificaten />;
   return <MyCertificaten />;
