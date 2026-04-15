@@ -15,9 +15,10 @@ model User {
   phone        String?
   passwordHash String
   role         String         @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
-  hourlyRate   Float          @default(0)
-  active       Boolean        @default(true)
-  createdAt    DateTime       @default(now())
+  hourlyRate               Float          @default(0)
+  active                   Boolean        @default(true)
+  canUploadCertificaten    Boolean        @default(false)
+  createdAt                DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
   userFuncties             UserFunctie[]
@@ -327,6 +328,7 @@ model Certificaat {
   type            String   // VCA, VCA_VOL, MANGATWACHT, GASMETEN, BHV, EHBO, RESCUE, ANDERS
   customName      String?  // alleen voor type ANDERS
   expiryDate      DateTime
+  fileUrl         String?  // uploaded bestand (foto/PDF)
   notifiedSoon    Boolean  @default(false) // 3 maanden waarschuwing verstuurd
   notifiedExpired Boolean  @default(false) // verlopen melding verstuurd
   createdAt       DateTime @default(now())

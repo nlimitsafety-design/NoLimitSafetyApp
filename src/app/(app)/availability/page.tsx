@@ -43,6 +43,13 @@ import {
 import { nl } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 
+function shortName(name?: string | null): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(1).join(' ')} ${parts[0].charAt(0).toUpperCase()}.`;
+}
+
 type CalendarView = 'week' | 'month';
 
 interface RecurringItem {
@@ -627,8 +634,10 @@ export default function AvailabilityPage() {
                   {isAdmin ? (
                     <div className="flex flex-wrap gap-0.5 mt-0.5">
                       {dayItems.slice(0, 6).map((item) => {
-                        const initials = (item.user?.name || '?')
-                          .split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase();
+                        const nameParts = (item.user?.name || '?').trim().split(/\s+/);
+                        const firstInitial = nameParts[0][0];
+                        const lastInitial = nameParts.length > 1 ? nameParts[nameParts.length - 1][0] : '';
+                        const initials = (lastInitial + firstInitial).toUpperCase();
                         const color = item.type === 'AVAILABLE'
                           ? 'bg-green-500 text-white'
                           : item.type === 'PARTIAL'
@@ -637,7 +646,7 @@ export default function AvailabilityPage() {
                         return (
                           <button
                             key={item.id}
-                            title={`${item.user?.name}: ${item.type === 'AVAILABLE' ? 'Hele dag' : item.type === 'PARTIAL' ? `${item.startTime}-${item.endTime}` : 'Niet beschikbaar'}`}
+                            title={`${shortName(item.user?.name)}: ${item.type === 'AVAILABLE' ? 'Hele dag' : item.type === 'PARTIAL' ? `${item.startTime}-${item.endTime}` : 'Niet beschikbaar'}`}
                             onClick={(e) => { e.stopPropagation(); openEditPlan(item); }}
                             className={`w-5 h-5 rounded text-[9px] font-bold flex items-center justify-center ${color} hover:opacity-80 transition-opacity`}
                           >
@@ -782,7 +791,7 @@ export default function AvailabilityPage() {
                             <p className="mt-1 font-medium text-red-400">Hele dag</p>
                           )}
                           {isAdmin && item.user && (
-                            <p className="text-gray-500 mt-0.5 text-[10px]">{item.user.name}</p>
+                            <p className="text-gray-500 mt-0.5 text-[10px]">{shortName(item.user.name)}</p>
                           )}
                           {item.note && <p className="text-gray-500 mt-0.5 italic">{item.note}</p>}
                         </div>

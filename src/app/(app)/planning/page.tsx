@@ -35,6 +35,13 @@ import { nl } from 'date-fns/locale';
 import toast from 'react-hot-toast';
 import ShiftRequestModal from '@/components/ShiftRequestModal';
 
+function shortName(name?: string | null): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts.slice(1).join(' ')} ${parts[0].charAt(0).toUpperCase()}.`;
+}
+
 type EmployeeStatusType = 'INGEVULD' | 'NIET_INGEVULD' | 'NIET_BESCHIKBAAR';
 type StatusFilter = 'ALL' | 'INGEVULD' | 'NIET_INGEVULD' | 'NIET_BESCHIKBAAR';
 
@@ -492,7 +499,7 @@ export default function PlanningPage() {
                           ) : (
                             <div className="flex flex-wrap gap-1 mt-1">
                               {shift.shiftUsers.slice(0, 2).map((su) => (
-                                <span key={su.id} className="text-gray-500">{su.user.name.split(' ')[0]}</span>
+                                <span key={su.id} className="text-gray-500">{shortName(su.user.name)}</span>
                               ))}
                               {shift.shiftUsers.length > 2 && (
                                 <span className="text-gray-600">+{shift.shiftUsers.length - 2}</span>
@@ -630,7 +637,7 @@ export default function PlanningPage() {
                             ) : (
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {shift.shiftUsers.map((su) => (
-                                  <span key={su.id} className="text-xs text-gray-500">{su.user.name.split(' ')[0]}</span>
+                                  <span key={su.id} className="text-xs text-gray-500">{shortName(su.user.name)}</span>
                                 ))}
                               </div>
                             )}
@@ -701,7 +708,7 @@ export default function PlanningPage() {
                   <div className="flex flex-wrap gap-2 mt-1">
                     {selectedShift.shiftUsers.map((su) => (
                       <span key={su.id} className="px-2 py-1 bg-gray-100 rounded text-xs text-gray-600">
-                        {su.user.name}
+                        {shortName(su.user.name)}
                       </span>
                     ))}
                   </div>

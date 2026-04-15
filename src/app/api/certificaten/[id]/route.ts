@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/server-auth';
+import { del } from '@vercel/blob';
 
 /**
  * PUT /api/certificaten/[id]
@@ -23,11 +24,16 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const body = await req.json();
-    const { type, customName, expiryDate } = body;
+    const { type, customName, expiryDate, fileUrl } = body;
 
     const validTypes = ['VCA', 'VCA_VOL', 'MANGATWACHT', 'GASMETEN', 'BHV', 'EHBO', 'RESCUE', 'ANDERS'];
     if (type && !validTypes.includes(type)) {
       return NextResponse.json({ error: 'Ongeldig certificaattype' }, { status: 400 });
+    }
+
+    // Delete old blob if replaced
+    if (fileUrl !== undefined && cert.fileUrl && cert.fileUrl !== fileUrl) {
+      await del(cert.fileUrl).catch(() => {});
     }
 
     const updated = await prisma.certificaat.update({
@@ -40,6 +46,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           notifiedSoon: false,
           notifiedExpired: false,
         }),
+        ...(fileUrl !== undefined && { fileUrl: fileUrl || null }),
       },
     });
 
@@ -70,6 +77,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     await prisma.certificaat.delete({ where: { id: params.id } });
+    // Clean up blob if present
+    if (cert.fileUrl) {
+      await del(cert.fileUrl).catch(() => {});
+    }
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Certificaten DELETE error:', err);

@@ -23,7 +23,7 @@ export async function GET() {
     // Get total active employees (admin/manager only)
     let totalEmployees = 0;
     if (isAdmin || isManager) {
-      totalEmployees = await prisma.user.count({ where: { active: true } });
+      totalEmployees = await prisma.user.count({ where: { active: true, role: { in: ['EMPLOYEE', 'MANAGER'] } } });
     }
 
     // Get shifts for the week
@@ -92,7 +92,7 @@ export async function GET() {
     let weekAvailabilityGrid: any = null;
     if (isAdmin || isManager) {
       const allEmployees = await prisma.user.findMany({
-        where: { active: true },
+        where: { active: true, role: { in: ['EMPLOYEE', 'MANAGER'] } },
         select: { id: true, name: true },
         orderBy: { name: 'asc' },
       });

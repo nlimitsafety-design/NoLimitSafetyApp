@@ -18,6 +18,7 @@ export async function GET() {
         role: true,
         hourlyRate: true,
         active: true,
+        canUploadCertificaten: true,
         createdAt: true,
         userFuncties: {
           select: { functie: { select: { id: true, name: true, color: true } } },
@@ -39,7 +40,8 @@ export async function GET() {
     }));
 
     return NextResponse.json(mapped);
-  } catch {
+  } catch (err) {
+    console.error('GET /api/employees error:', err);
     return NextResponse.json({ error: 'Interne serverfout' }, { status: 500 });
   }
 }

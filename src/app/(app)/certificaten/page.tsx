@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useCertificaten, useAllCertificaten, useEmployees } from "@/lib/swr";
+import { useCertificaten, useAllCertificaten, useEmployees, useProfile } from "@/lib/swr";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -16,6 +16,7 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   ArrowPathIcon,
+  PaperClipIcon,
 } from "@heroicons/react/24/outline";
 import toast from "react-hot-toast";
 import {
@@ -45,12 +46,14 @@ interface CertFormState {
   customName: string;
   expiryDate: string;
   userId?: string;
+  fileUrl?: string;
 }
 
 const EMPTY_FORM: CertFormState = {
   type: "VCA",
   customName: "",
   expiryDate: "",
+  fileUrl: "",
 };
 
 function certLabel(type: string, customName?: string | null): string {
@@ -108,6 +111,7 @@ function CertForm({
   saving,
   showUserSelect,
   employees,
+  certId,
 }: {
   initial: CertFormState;
   onSave: (form: CertFormState) => void;
@@ -115,8 +119,40 @@ function CertForm({
   saving: boolean;
   showUserSelect?: boolean;
   employees?: any[];
+  certId?: string;
 }) {
   const [form, setForm] = useState<CertFormState>(initial);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedName, setUploadedName] = useState<string>("");
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      if (certId) fd.append("certId", certId);
+      const res = await fetch("/api/certificaten/upload", {
+        method: "POST",
+        body: fd,
+      });
+      if (res.ok) {
+        const { url } = await res.json();
+        setForm((f) => ({ ...f, fileUrl: url }));
+        setUploadedName(file.name);
+        toast.success("Bestand geüpload");
+      } else {
+        const d = await res.json();
+        toast.error(d.error || "Upload mislukt");
+      }
+    } catch {
+      toast.error("Upload mislukt");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
@@ -189,6 +225,52 @@ function CertForm({
         />
       </div>
 
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          Bestand (optioneel)
+        </label>
+        {form.fileUrl ? (
+          <div className="flex items-center gap-2 text-sm py-1">
+            <a
+              href={`/api/certificaten/file?url=${encodeURIComponent(form.fileUrl!)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-brand-500 hover:text-brand-300 truncate max-w-[120px]"
+              title={uploadedName || "Bekijk bestand"}
+            >
+              <PaperClipIcon className="h-4 w-4 flex-shrink-0" />
+              {uploadedName || "Bestand"}
+            </a>
+            <button
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, fileUrl: "" }))}
+              className="text-gray-400 hover:text-red-500 flex-shrink-0"
+              title="Verwijderen"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <label
+            className={`flex items-center gap-2 cursor-pointer border border-dashed border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-500 hover:border-brand-500 hover:text-brand-500 transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {uploading ? (
+              <ArrowPathIcon className="h-4 w-4 animate-spin flex-shrink-0" />
+            ) : (
+              <PaperClipIcon className="h-4 w-4 flex-shrink-0" />
+            )}
+            {uploading ? "Uploaden…" : "Selecteer bestand"}
+            <input
+              type="file"
+              className="hidden"
+              accept=".jpg,.jpeg,.png,.webp,.pdf"
+              onChange={handleFileChange}
+              disabled={uploading}
+            />
+          </label>
+        )}
+      </div>
+
       <div className="flex gap-2">
         <Button onClick={() => onSave(form)} loading={saving} size="sm">
           <CheckIcon className="h-4 w-4 mr-1" />
@@ -206,6 +288,8 @@ function CertForm({
 
 function MyCertificaten() {
   const { data: certificaten = [], mutate } = useCertificaten();
+  const { data: profile } = useProfile();
+  const canUpload = !!(profile as any)?.canUploadCertificaten;
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -228,6 +312,7 @@ function MyCertificaten() {
           type: form.type,
           customName: form.customName,
           expiryDate: form.expiryDate,
+          fileUrl: form.fileUrl || null,
         }),
       });
       if (res.ok) {
@@ -259,6 +344,7 @@ function MyCertificaten() {
           type: form.type,
           customName: form.customName,
           expiryDate: form.expiryDate,
+          fileUrl: form.fileUrl ?? null,
         }),
       });
       if (res.ok) {
@@ -308,7 +394,7 @@ function MyCertificaten() {
             Beheer je certificaten en vervaldatums
           </p>
         </div>
-        {!adding && (
+        {!adding && canUpload && (
           <Button onClick={() => setAdding(true)}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Certificaat toevoegen
@@ -334,7 +420,7 @@ function MyCertificaten() {
         </div>
       )}
 
-      {adding && (
+      {adding && canUpload && (
         <Card className="mb-6">
           <p className="text-sm font-medium text-gray-700 mb-3">
             Nieuw certificaat
@@ -368,10 +454,12 @@ function MyCertificaten() {
                     type: cert.type as CertType,
                     customName: cert.customName ?? "",
                     expiryDate: cert.expiryDate.split("T")[0],
+                    fileUrl: cert.fileUrl ?? "",
                   }}
                   onSave={(form) => handleEdit(cert.id, form)}
                   onCancel={() => setEditingId(null)}
                   saving={saving}
+                  certId={cert.id}
                 />
               ) : (
                 <div className="flex items-center justify-between gap-4">
@@ -380,6 +468,18 @@ function MyCertificaten() {
                       {certLabel(cert.type, cert.customName)}
                     </span>
                     <StatusBadge expiryDate={cert.expiryDate} />
+                    {cert.fileUrl && (
+                      <a
+                        href={`/api/certificaten/file?url=${encodeURIComponent(cert.fileUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-brand-500 hover:text-brand-300"
+                        title="Bekijk bestand"
+                      >
+                        <PaperClipIcon className="h-3.5 w-3.5" />
+                        Bestand
+                      </a>
+                    )}
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0">
                     <button
@@ -446,6 +546,7 @@ function AdminCertificaten() {
           customName: form.customName,
           expiryDate: form.expiryDate,
           userId: form.userId,
+          fileUrl: form.fileUrl || null,
         }),
       });
       if (res.ok) {
@@ -477,6 +578,7 @@ function AdminCertificaten() {
           type: form.type,
           customName: form.customName,
           expiryDate: form.expiryDate,
+          fileUrl: form.fileUrl ?? null,
         }),
       });
       if (res.ok) {
@@ -538,6 +640,7 @@ function AdminCertificaten() {
   const byEmployee = useMemo(() => {
     const map = new Map<string, { user: any; certs: any[] }>();
     for (const cert of filtered) {
+      if (!cert.user) continue; // skip orphaned certs
       if (!map.has(cert.userId)) {
         map.set(cert.userId, { user: cert.user, certs: [] });
       }
@@ -664,10 +767,12 @@ function AdminCertificaten() {
                           type: cert.type as CertType,
                           customName: cert.customName ?? "",
                           expiryDate: cert.expiryDate.split("T")[0],
+                          fileUrl: cert.fileUrl ?? "",
                         }}
                         onSave={(form) => handleEdit(cert.id, form)}
                         onCancel={() => setEditingId(null)}
                         saving={saving}
+                        certId={cert.id}
                       />
                     ) : (
                       <div className="flex items-center justify-between gap-4 py-1">
@@ -676,6 +781,18 @@ function AdminCertificaten() {
                             {certLabel(cert.type, cert.customName)}
                           </span>
                           <StatusBadge expiryDate={cert.expiryDate} />
+                          {cert.fileUrl && (
+                            <a
+                              href={`/api/certificaten/file?url=${encodeURIComponent(cert.fileUrl)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-xs text-brand-500 hover:text-brand-300"
+                              title="Bekijk bestand"
+                            >
+                              <PaperClipIcon className="h-3.5 w-3.5" />
+                              Bestand
+                            </a>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button

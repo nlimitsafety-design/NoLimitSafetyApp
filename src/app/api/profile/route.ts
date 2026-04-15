@@ -26,6 +26,7 @@ export async function GET() {
         role: true,
         hourlyRate: true,
         active: true,
+        canUploadCertificaten: true,
         createdAt: true,
       },
     });

@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { type, customName, expiryDate, userId: bodyUserId } = body;
+    const { type, customName, expiryDate, fileUrl, userId: bodyUserId } = body;
 
     if (!type || !expiryDate) {
       return NextResponse.json({ error: 'type en expiryDate zijn verplicht' }, { status: 400 });
@@ -72,6 +72,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Vul een naam in voor het certificaat' }, { status: 400 });
     }
 
+    if ((role === 'ADMIN' || role === 'MANAGER') && !bodyUserId) {
+      return NextResponse.json({ error: 'Selecteer een medewerker' }, { status: 400 });
+    }
+
     const targetUserId =
       bodyUserId && (role === 'ADMIN' || role === 'MANAGER') ? bodyUserId : sessionUserId;
 
@@ -81,6 +85,7 @@ export async function POST(req: NextRequest) {
         type,
         customName: type === 'ANDERS' ? customName.trim() : null,
         expiryDate: new Date(expiryDate),
+        fileUrl: fileUrl || null,
       },
     });
 

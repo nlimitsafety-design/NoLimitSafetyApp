@@ -20,7 +20,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       return NextResponse.json({ errors }, { status: 400 });
     }
 
-    const { name, email, phone, role, hourlyRate, active, password, functieIds, kwalificatieIds } = parsed.data;
+    const { name, email, phone, role, hourlyRate, active, password, functieIds, kwalificatieIds, canUploadCertificaten } = parsed.data as any;
 
     // Check duplicate email (exclude current user)
     if (email) {
@@ -39,6 +39,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (role !== undefined) updateData.role = role;
     if (hourlyRate !== undefined) updateData.hourlyRate = hourlyRate;
     if (active !== undefined) updateData.active = active;
+    if (canUploadCertificaten !== undefined) updateData.canUploadCertificaten = canUploadCertificaten;
     if (password) {
       updateData.passwordHash = await bcrypt.hash(password, 12);
     }

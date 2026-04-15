@@ -18,6 +18,7 @@ export const employeeSchema = z.object({
     .optional(),
   functieIds: z.array(z.string()).optional(),
   kwalificatieIds: z.array(z.string()).optional(),
+  canUploadCertificaten: z.boolean().optional(),
 });
 
 export const availabilitySchema = z.object({

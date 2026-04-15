@@ -19,8 +19,16 @@ import { format, startOfWeek, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 function abbrev(name: string) {
-  const parts = name.trim().split(' ');
-  if (parts.length === 1) return parts[0].slice(0, 6);
+  const trimmed = name.trim();
+  // Names stored as "Lastname,Firstname" — show "Firstname L."
+  if (trimmed.includes(',')) {
+    const [last, ...rest] = trimmed.split(',').map(p => p.trim());
+    const first = rest.join(' ');
+    if (first) return first.slice(0, 8) + ' ' + last.slice(0, 1) + '.';
+    return last.slice(0, 8);
+  }
+  const parts = trimmed.split(' ');
+  if (parts.length === 1) return parts[0].slice(0, 8);
   return parts[0].slice(0, 1).toUpperCase() + '. ' + parts[parts.length - 1].slice(0, 8);
 }
 

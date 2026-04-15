@@ -48,6 +48,24 @@ export default function PermissionsPage() {
     }
   }
 
+  async function updateCertificaten(userId: string, current: boolean) {
+    setSaving(userId);
+    try {
+      const res = await fetch(`/api/employees/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ canUploadCertificaten: !current }),
+      });
+      if (!res.ok) throw new Error();
+      await mutate();
+      toast.success('Certificaten-toegang bijgewerkt');
+    } catch {
+      toast.error('Kon instelling niet opslaan');
+    } finally {
+      setSaving(null);
+    }
+  }
+
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center h-64 text-gray-500">
@@ -97,6 +115,7 @@ export default function PermissionsPage() {
                 <th className="text-left py-3 px-4 font-medium text-gray-500">E-mail</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-500">Huidige rol</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-500">Rol wijzigen</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-500">Certificaten upload</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -140,12 +159,26 @@ export default function PermissionsPage() {
                         ))}
                       </div>
                     </td>
+                    <td className="py-3 px-4">
+                      <button
+                        disabled={isLoading}
+                        onClick={() => updateCertificaten(emp.id, !!emp.canUploadCertificaten)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50
+                          ${emp.canUploadCertificaten ? 'bg-brand-500' : 'bg-gray-200'}`}
+                        title={emp.canUploadCertificaten ? 'Klik om toegang in te trekken' : 'Klik om toegang te geven'}
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform
+                            ${emp.canUploadCertificaten ? 'translate-x-4' : 'translate-x-1'}`}
+                        />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
               {employees.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-gray-400">Geen medewerkers gevonden</td>
+                  <td colSpan={5} className="py-8 text-center text-gray-400">Geen medewerkers gevonden</td>
                 </tr>
               )}
             </tbody>

@@ -38,7 +38,8 @@ export default function EmployeesPage() {
 
   // Form state
   const [form, setForm] = useState({
-    name: '',
+    voornaam: '',
+    achternaam: '',
     email: '',
     phone: '',
     role: 'EMPLOYEE',
@@ -52,15 +53,19 @@ export default function EmployeesPage() {
 
   function openCreate() {
     setEditingEmployee(null);
-    setForm({ name: '', email: '', phone: '', role: 'EMPLOYEE', active: true, password: '', functieIds: [], kwalificatieIds: [] });
+    setForm({ voornaam: '', achternaam: '', email: '', phone: '', role: 'EMPLOYEE', active: true, password: '', functieIds: [], kwalificatieIds: [] });
     setFormErrors({});
     setModalOpen(true);
   }
 
   function openEdit(emp: Employee) {
     setEditingEmployee(emp);
+    const parts = emp.name.trim().split(/\s+/);
+    const voornaam = parts[0] || '';
+    const achternaam = parts.slice(1).join(' ');
     setForm({
-      name: emp.name,
+      voornaam,
+      achternaam,
       email: emp.email,
       phone: emp.phone || '',
       role: emp.role,
@@ -82,7 +87,10 @@ export default function EmployeesPage() {
       const url = editingEmployee ? `/api/employees/${editingEmployee.id}` : '/api/employees';
       const method = editingEmployee ? 'PUT' : 'POST';
 
-      const body: any = { ...form };
+      const name = `${form.voornaam.trim()} ${form.achternaam.trim()}`.trim();
+      const body: any = { ...form, name };
+      delete body.voornaam;
+      delete body.achternaam;
       if (!body.password) delete body.password;
 
       const res = await fetch(url, {
@@ -272,11 +280,16 @@ export default function EmployeesPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
-                label="Naam"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                label="Voornaam"
+                value={form.voornaam}
+                onChange={(e) => setForm({ ...form, voornaam: e.target.value })}
                 error={formErrors.name}
                 required
+              />
+              <Input
+                label="Achternaam"
+                value={form.achternaam}
+                onChange={(e) => setForm({ ...form, achternaam: e.target.value })}
               />
               <Input
                 label="E-mailadres"
