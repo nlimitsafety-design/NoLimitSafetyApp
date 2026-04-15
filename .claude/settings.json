@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma *)"
+    ],
+    "additionalDirectories": [
+      "e:\\Users\\zsaba\\code\\NoLimitSafetyApp-main\\src\\app\\api\\certificaten"
+    ]
+  }
+}
