@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useSession } from 'next-auth/react';
-import { useDashboard } from '@/lib/swr';
+import { useDashboard, useConversations } from '@/lib/swr';
 import Card, { CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -14,6 +14,7 @@ import {
   CurrencyEuroIcon,
   PlusIcon,
   ArrowRightIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import { format, startOfWeek, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -112,10 +113,13 @@ function AvailabilityGrid({ data, loading }: { data: any; loading: boolean }) {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const { data, isLoading: loading } = useDashboard();
+  const { data: conversations } = useConversations();
 
-  const userRole = session?.user?.role;
+  const userRole = (session?.user as any)?.role;
   const isAdmin = userRole === 'ADMIN';
   const isManager = userRole === 'MANAGER';
+
+  const totalUnread = (conversations || []).reduce((sum: number, c: any) => sum + (c.unreadCount || 0), 0);
 
   const stats = [
     {
@@ -192,6 +196,31 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Unread messages banner */}
+        {totalUnread > 0 && (
+          <Link href="/berichten" className="block mb-6">
+            <div className="flex items-center gap-3 p-4 bg-brand-50 border border-brand-200 rounded-xl hover:bg-brand-100 transition-colors">
+              <div className="relative flex-shrink-0">
+                <div className="p-2 rounded-lg bg-brand-500/15">
+                  <ChatBubbleLeftRightIcon className="h-5 w-5 text-brand-500" />
+                </div>
+                <span className="absolute -top-1 -right-1 h-4 min-w-[16px] rounded-full bg-brand-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                  {totalUnread}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-brand-700">
+                  {totalUnread} ongelezen bericht{totalUnread !== 1 ? 'en' : ''}
+                </p>
+                <p className="text-xs text-brand-500 truncate">
+                  Klik om berichten te bekijken
+                </p>
+              </div>
+              <ArrowRightIcon className="h-4 w-4 text-brand-500 flex-shrink-0" />
+            </div>
+          </Link>
+        )}
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

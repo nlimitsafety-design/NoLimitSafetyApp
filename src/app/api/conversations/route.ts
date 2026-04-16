@@ -84,6 +84,12 @@ export async function POST(req: Request) {
   const { error, session } = await requireAuth();
   if (error) return error;
   const userId = (session!.user as any).id;
+  const userRole = (session!.user as any).role;
+
+  // Only admins may create conversations
+  if (userRole !== 'ADMIN') {
+    return NextResponse.json({ error: 'Alleen beheerders mogen gesprekken starten' }, { status: 403 });
+  }
 
   const { memberIds, name, isGroup } = await req.json();
 

@@ -89,6 +89,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const { error, session } = await requireAuth();
   if (error) return error;
   const userId = (session!.user as any).id;
+  const userRole = (session!.user as any).role;
+
+  // Only admins may send messages
+  if (userRole !== 'ADMIN') {
+    return NextResponse.json({ error: 'Alleen beheerders mogen berichten versturen' }, { status: 403 });
+  }
 
   // Check membership
   const membership = await prisma.conversationMember.findUnique({

@@ -56,21 +56,47 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
   const [groupName, setGroupName] = useState('');
   const [activeFunctie, setActiveFunctie] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
 
-  const filtered = (users || []).filter(
+  const allSelectableUsers: any[] = (users || []).filter((e: any) => e.id !== currentUserId);
+
+  const filtered: any[] = allSelectableUsers.filter(
     (e: any) =>
-      e.id !== currentUserId &&
       e.name.toLowerCase().includes(search.toLowerCase()) &&
       (!activeFunctie || (e.functies || []).some((f: any) => f.id === activeFunctie))
   );
 
   const isGroup = selectedIds.length > 1;
 
+  function selectAll() {
+    const ids = allSelectableUsers.map((e: any) => e.id as string);
+    setSelectedIds(ids);
+  }
+
+  function deselectAll() {
+    setSelectedIds([]);
+  }
+
+  function toggleUser(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  }
+
+  function removeUser(id: string) {
+    setSelectedIds((prev) => prev.filter((i) => i !== id));
+  }
+
+  const everyoneSelected =
+    allSelectableUsers.length > 0 &&
+    allSelectableUsers.every((e: any) => selectedIds.includes(e.id));
+
   async function handleCreate() {
     if (selectedIds.length === 0) return;
     setCreating(true);
+    setCreateError(null);
     try {
       const res = await fetch('/api/conversations', {
         method: 'POST',
@@ -82,9 +108,14 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
         }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setCreateError(data.error || 'Er is een fout opgetreden');
+        return;
+      }
       if (data.id) onCreated(data.id);
     } catch (err) {
       console.error('Berichten action error:', err);
+      setCreateError('Er is een fout opgetreden');
     } finally {
       setCreating(false);
     }
@@ -92,10 +123,10 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <h3 className="font-semibold text-gray-900">Nieuw gesprek</h3>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
+          <button type="button" onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg">
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -113,13 +144,13 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
             />
           </div>
           {selectedIds.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-3 max-h-28 overflow-y-auto">
               {selectedIds.map((id) => {
                 const emp = (users || []).find((e: any) => e.id === id);
                 return (
                   <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-brand-50 text-brand-600 rounded-full text-xs font-medium">
                     {emp?.name || id}
-                    <button onClick={() => setSelectedIds(selectedIds.filter((i) => i !== id))} className="hover:text-brand-800">
+                    <button type="button" onClick={() => removeUser(id)} className="hover:text-brand-800">
                       <XMarkIcon className="h-3 w-3" />
                     </button>
                   </span>
@@ -138,39 +169,71 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
           )}
         </div>
 
-        {/* Functie filter chips */}
-        {functies && functies.length > 0 && (
-          <div className="px-4 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
+        {/* Functie filter chips + Iedereen selecteren */}
+        <div className="px-4 py-2 border-b border-gray-100 flex flex-wrap gap-1.5">
+          {/* Iedereen chip: reset filter EN selecteer iedereen */}
+          <button
+            type="button"
+            onClick={() => { setActiveFunctie(null); selectAll(); }}
+            className={cn(
+              'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
+              !activeFunctie && everyoneSelected
+                ? 'bg-brand-500 text-white border-brand-500'
+                : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+            )}
+          >
+            Iedereen
+          </button>
+          {(functies || []).map((f: any) => (
             <button
-              onClick={() => setActiveFunctie(null)}
+              type="button"
+              key={f.id}
+              onClick={() => setActiveFunctie(activeFunctie === f.id ? null : f.id)}
               className={cn(
                 'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
-                !activeFunctie
-                  ? 'bg-brand-500 text-white border-brand-500'
-                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                activeFunctie === f.id
+                  ? 'text-white border-transparent'
+                  : 'border-gray-200 hover:opacity-80'
               )}
+              style={
+                activeFunctie === f.id
+                  ? { backgroundColor: f.color, borderColor: f.color }
+                  : { backgroundColor: f.color + '15', color: f.color, borderColor: f.color + '30' }
+              }
             >
-              Iedereen
+              {f.name}
             </button>
-            {functies.map((f: any) => (
+          ))}
+          {/* Deselecteer knop + start knop */}
+          {selectedIds.length > 0 && (
+            <>
               <button
-                key={f.id}
-                onClick={() => setActiveFunctie(activeFunctie === f.id ? null : f.id)}
-                className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium transition-colors border',
-                  activeFunctie === f.id
-                    ? 'text-white border-transparent'
-                    : 'border-gray-200 hover:opacity-80'
-                )}
-                style={
-                  activeFunctie === f.id
-                    ? { backgroundColor: f.color, borderColor: f.color }
-                    : { backgroundColor: f.color + '15', color: f.color, borderColor: f.color + '30' }
-                }
+                type="button"
+                onClick={deselectAll}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors border border-red-200 bg-red-50 text-red-500 hover:bg-red-100"
               >
-                {f.name}
+                Wis selectie
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={handleCreate}
+                disabled={creating}
+                className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors border border-brand-500 bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 ml-auto"
+              >
+                {creating ? 'Bezig...' : isGroup ? 'Groepsgesprek starten' : 'Gesprek starten'}
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Count */}
+        {allSelectableUsers.length > 0 && (
+          <div className="px-4 py-1.5 border-b border-gray-100">
+            <span className="text-xs text-gray-400">
+              {selectedIds.length > 0
+                ? `${selectedIds.length} van ${allSelectableUsers.length} geselecteerd`
+                : `${allSelectableUsers.length} medewerker${allSelectableUsers.length !== 1 ? 's' : ''}`}
+            </span>
           </div>
         )}
 
@@ -179,12 +242,9 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
             const selected = selectedIds.includes(emp.id);
             return (
               <button
+                type="button"
                 key={emp.id}
-                onClick={() =>
-                  selected
-                    ? setSelectedIds(selectedIds.filter((i) => i !== emp.id))
-                    : setSelectedIds([...selectedIds, emp.id])
-                }
+                onClick={() => toggleUser(emp.id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left',
                   selected && 'bg-brand-50/50'
@@ -200,7 +260,7 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
                   </p>
                 </div>
                 {selected && (
-                  <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0">
                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -214,8 +274,11 @@ function NewConversationModal({ onClose, onCreated }: { onClose: () => void; onC
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-100">
-          <Button onClick={handleCreate} disabled={selectedIds.length === 0 || creating} loading={creating} className="w-full">
+        <div className="p-4 border-t border-gray-100 space-y-2">
+          {createError && (
+            <p className="text-xs text-red-500 text-center">{createError}</p>
+          )}
+          <Button type="button" onClick={handleCreate} disabled={selectedIds.length === 0 || creating} loading={creating} className="w-full">
             {isGroup ? 'Groepsgesprek starten' : 'Gesprek starten'}
           </Button>
         </div>
@@ -238,19 +301,22 @@ function ConversationList({
 }) {
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
+  const isAdmin = (session?.user as any)?.role === 'ADMIN';
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900">Berichten</h2>
-        <button
-          onClick={onNew}
-          className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
-          title="Nieuw gesprek"
-        >
-          <PlusIcon className="h-5 w-5" />
-        </button>
+        {isAdmin && (
+          <button
+            onClick={onNew}
+            className="p-2 text-brand-500 hover:bg-brand-50 rounded-lg transition-colors"
+            title="Nieuw gesprek"
+          >
+            <PlusIcon className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       {/* List */}
@@ -582,6 +648,7 @@ function ChatView({
 }) {
   const { data: session } = useSession();
   const currentUserId = (session?.user as any)?.id;
+  const isAdmin = (session?.user as any)?.role === 'ADMIN';
   const { data, mutate } = useConversation(conversationId);
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -734,28 +801,34 @@ function ChatView({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-gray-100 bg-white">
-        <input
-          ref={inputRef}
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Typ een bericht..."
-          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
-        />
-        <button
-          type="submit"
-          disabled={!message.trim() || sending}
-          className={cn(
-            'p-2.5 rounded-full transition-all duration-200',
-            message.trim()
-              ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-sm'
-              : 'bg-gray-100 text-gray-300'
-          )}
-        >
-          <PaperAirplaneIcon className="h-4 w-4" />
-        </button>
-      </form>
+      {isAdmin ? (
+        <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-gray-100 bg-white">
+          <input
+            ref={inputRef}
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Typ een bericht..."
+            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none"
+          />
+          <button
+            type="submit"
+            disabled={!message.trim() || sending}
+            className={cn(
+              'p-2.5 rounded-full transition-all duration-200',
+              message.trim()
+                ? 'bg-brand-500 text-white hover:bg-brand-600 shadow-sm'
+                : 'bg-gray-100 text-gray-300'
+            )}
+          >
+            <PaperAirplaneIcon className="h-4 w-4" />
+          </button>
+        </form>
+      ) : (
+        <div className="flex items-center justify-center p-3 border-t border-gray-100 bg-gray-50">
+          <p className="text-xs text-gray-400">Alleen beheerders mogen berichten versturen</p>
+        </div>
+      )}
 
       {/* Group settings panel */}
       {showSettings && conversation?.isGroup && (
