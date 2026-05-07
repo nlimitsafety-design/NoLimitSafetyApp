@@ -11,3 +11,7 @@ seed-local.js
 next-env.d.ts
 .vercel
 .env*.local
+
+# Firebase Admin SDK service account keys — NEVER commit
+*-firebase-adminsdk-*.json
+firebase-service-account*.json

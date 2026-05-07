@@ -37,7 +37,11 @@ self.addEventListener('notificationclick', function(event) {
 
   if (event.action === 'dismiss') return;
 
-  const url = event.notification.data?.url || '/notifications';
+  // Only allow same-origin same-path URLs to prevent open-redirect via push payload
+  const rawUrl = event.notification.data?.url;
+  const url = (typeof rawUrl === 'string' && rawUrl.startsWith('/') && !rawUrl.startsWith('//'))
+    ? rawUrl
+    : '/notifications';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {

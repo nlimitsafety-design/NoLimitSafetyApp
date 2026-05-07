@@ -2,6 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/server-auth';
 
+// Per-process sliding window: 30 messages per minute per user+conversation.
+// Good enough to stop accidental floods; not a substitute for a real limiter.
+const RATE_LIMIT_MAX = 30;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const messageRateBuckets = new Map<string, number[]>();
+function checkMessageRate(key: string): boolean {
+  const now = Date.now();
+  const cutoff = now - RATE_LIMIT_WINDOW_MS;
+  const hits = (messageRateBuckets.get(key) || []).filter((t) => t > cutoff);
+  if (hits.length >= RATE_LIMIT_MAX) {
+    messageRateBuckets.set(key, hits);
+    return false;
+  }
+  hits.push(now);
+  messageRateBuckets.set(key, hits);
+  return true;
+}
+
 // GET /api/conversations/[id] — get messages for a conversation
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const { error, session } = await requireAuth();
@@ -44,16 +62,19 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     },
   });
 
-  // Mark as read
-  await prisma.conversationMember.update({
-    where: {
-      conversationId_userId: {
-        conversationId: params.id,
-        userId,
+  // Only mark as read on the latest page (no cursor) to avoid clobbering unread
+  // state when the user is paginating through history.
+  if (!beforeDate) {
+    await prisma.conversationMember.update({
+      where: {
+        conversationId_userId: {
+          conversationId: params.id,
+          userId,
+        },
       },
-    },
-    data: { lastReadAt: new Date() },
-  });
+      data: { lastReadAt: new Date() },
+    });
+  }
 
   // Get conversation info
   const conversation = await prisma.conversation.findUnique({
@@ -108,6 +129,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (!membership) {
     return NextResponse.json({ error: 'Geen toegang' }, { status: 403 });
+  }
+
+  if (!checkMessageRate(`${userId}:${params.id}`)) {
+    return NextResponse.json({ error: 'Te veel berichten, probeer het later opnieuw' }, { status: 429 });
   }
 
   const { content } = await req.json();
@@ -202,17 +227,28 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     });
   }
 
-  // Add members
+  // Add members — validate IDs against actual users and cap batch size
   if (addMemberIds && Array.isArray(addMemberIds) && addMemberIds.length > 0) {
+    if (addMemberIds.length > 100) {
+      return NextResponse.json({ error: 'Te veel deelnemers in één keer' }, { status: 400 });
+    }
+    const requested = addMemberIds.filter((id: unknown): id is string => typeof id === 'string');
     const existingIds = conversation.members.map((m) => m.userId);
-    const newIds = addMemberIds.filter((id: string) => !existingIds.includes(id));
-    if (newIds.length > 0) {
-      await prisma.conversationMember.createMany({
-        data: newIds.map((id: string) => ({
-          conversationId: params.id,
-          userId: id,
-        })),
+    const candidates = requested.filter((id) => !existingIds.includes(id));
+    if (candidates.length > 0) {
+      const validUsers = await prisma.user.findMany({
+        where: { id: { in: candidates } },
+        select: { id: true },
       });
+      const validIds = validUsers.map((u) => u.id);
+      if (validIds.length > 0) {
+        await prisma.conversationMember.createMany({
+          data: validIds.map((id) => ({
+            conversationId: params.id,
+            userId: id,
+          })),
+        });
+      }
     }
   }
 

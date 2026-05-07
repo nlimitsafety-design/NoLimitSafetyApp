@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import PushNotificationManager from '@/components/PushNotificationManager';
+import MobilePushManager from '@/components/MobilePushManager';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -33,6 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
       <PushNotificationManager />
+      <MobilePushManager />
       <main className="pt-16 lg:pt-0 sidebar-offset">
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           {children}
