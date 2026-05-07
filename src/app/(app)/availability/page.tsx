@@ -71,7 +71,7 @@ interface ExceptionItem {
   startTime: string | null;
   endTime: string | null;
   note: string | null;
-  user?: { id: string; name: string };
+  user?: { id: string; name: string; voorletter?: string | null };
 }
 
 export default function AvailabilityPage() {
