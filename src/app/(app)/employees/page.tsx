@@ -51,6 +51,25 @@ export default function EmployeesPage() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
+  async function resetTwoFactor() {
+    if (!editingEmployee) return;
+    if (!confirm(`Tweede factor opnieuw instellen voor ${editingEmployee.name}? De koppeling en alle vertrouwde apparaten worden gewist; bij de volgende inlog moet opnieuw gekoppeld worden.`)) return;
+    try {
+      const res = await fetch('/api/auth/totp/reset', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ userId: editingEmployee.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || 'Reset mislukt');
+      }
+      toast.success('Tweede factor gereset');
+    } catch (e: any) {
+      toast.error(e?.message || 'Reset mislukt');
+    }
+  }
+
   function openCreate() {
     setEditingEmployee(null);
     setForm({ voornaam: '', achternaam: '', email: '', phone: '', role: 'EMPLOYEE', active: true, password: '', functieIds: [], kwalificatieIds: [] });
@@ -408,6 +427,16 @@ export default function EmployeesPage() {
                 />
                 <span className="text-sm text-gray-600">Actief</span>
               </label>
+            )}
+
+            {editingEmployee && session?.user?.role === 'ADMIN' && (
+              <div className="pt-4 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-700 mb-1">Tweede factor (authenticator)</p>
+                <p className="text-xs text-gray-400 mb-2">Gebruik dit als de medewerker zijn telefoon kwijt is. Koppeling en vertrouwde apparaten worden gewist.</p>
+                <Button type="button" variant="ghost" onClick={resetTwoFactor}>
+                  Reset 2FA
+                </Button>
+              </div>
             )}
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">

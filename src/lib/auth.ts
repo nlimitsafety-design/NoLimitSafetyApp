@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
+import { readDeviceTokenFromCookieHeader, isTrustedDevice } from "./device";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -12,7 +13,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Wachtwoord", type: "password" },
         rememberMe: { label: "Remember Me", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email en wachtwoord zijn verplicht");
         }
@@ -31,6 +32,18 @@ export const authOptions: NextAuthOptions = {
         );
         if (!isValid) {
           throw new Error("Ongeldige inloggegevens");
+        }
+
+        // Tweede factor: dit apparaat moet eerder via de authenticator zijn
+        // geverifieerd (eerste inlog = koppelen, nieuw apparaat = code invoeren).
+        // De koppel-/verifieer-endpoints zetten daarna het apparaat-cookie; pas
+        // daarna mag signIn slagen. Dit blokkeert het overslaan van de 2FA-stap.
+        const deviceToken = readDeviceTokenFromCookieHeader(
+          req?.headers?.cookie as string | undefined,
+        );
+        const trusted = await isTrustedDevice(user.id, deviceToken);
+        if (!trusted) {
+          throw new Error("DEVICE_NOT_VERIFIED");
         }
 
         return {

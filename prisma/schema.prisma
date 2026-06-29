@@ -19,6 +19,8 @@ model User {
   active                   Boolean        @default(true)
   voorletter               String?
   canUploadCertificaten    Boolean        @default(false)
+  totpSecret               String?        // base32 TOTP secret; set zodra koppeling bevestigd is
+  totpEnabled              Boolean        @default(false) // true zodra de authenticator gekoppeld is
   createdAt                DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
@@ -36,8 +38,23 @@ model User {
   sentMessages             Message[]
   createdConversations     Conversation[] @relation("conversationCreator")
   certificaten             Certificaat[]
+  trustedDevices           TrustedDevice[]
 
   @@map("users")
+}
+
+model TrustedDevice {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique // sha256 van het random token dat in de cookie staat
+  label      String?  // korte omschrijving o.b.v. user-agent
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("trusted_devices")
 }
 
 model Availability {
