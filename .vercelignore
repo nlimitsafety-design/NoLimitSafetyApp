@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+android
+website
+__tests__
+*.db
+*.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+*.tsbuildinfo
+*.keystore
+release.keystore
+.env
+.env*.local
+*-firebase-adminsdk-*.json
+firebase-service-account*.json
