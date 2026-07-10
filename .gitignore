@@ -16,7 +16,6 @@ next-env.d.ts
 *-firebase-adminsdk-*.json
 firebase-service-account*.json
 
-# Android signing keys & credentials — NEVER commit
+
+# Signing keys — NEVER commit
 *.keystore
-release.keystore
-android/keystore.properties

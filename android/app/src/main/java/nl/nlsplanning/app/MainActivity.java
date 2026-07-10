@@ -1,5 +1,0 @@
-package nl.nlsplanning.app;
-
-import com.getcapacitor.BridgeActivity;
-
-public class MainActivity extends BridgeActivity {}
