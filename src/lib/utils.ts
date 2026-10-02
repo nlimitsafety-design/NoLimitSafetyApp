@@ -123,9 +123,6 @@ export const ROLES = [
   { value: "EMPLOYEE", label: "Medewerker" },
 ] as const;
 
-/**
- * Generate TIME_SLOTS: every 5 minutes (00:00 to 23:55)
- */
 export const TIME_SLOTS = (() => {
   const slots: string[] = [];
   for (let hour = 0; hour < 24; hour++) {
