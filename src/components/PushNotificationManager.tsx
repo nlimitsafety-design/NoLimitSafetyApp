@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { BellIcon, XMarkIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 
 const VAPID_PUBLIC_KEY = (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '').trim().replace(/^"|"$/g, '');
 
@@ -87,17 +87,19 @@ export function getPushStatus(): 'unsupported' | 'denied' | 'prompt' | 'granted'
   return Notification.permission as 'denied' | 'prompt' | 'granted';
 }
 
-type ModalState = 'hidden' | 'prompt' | 'denied' | 'ios-settings';
+type ModalState = 'hidden' | 'prompt' | 'denied' | 'ios-settings' | 'ios-info';
 
 /**
  * This component enforces that users accept push notifications before using the app.
  * A blocking modal is shown until permission is granted. If the browser has blocked
  * notifications, instructions are shown to unblock them.
+ * On iOS, a non-blocking informational banner is shown instead of enforcement.
  */
 export default function PushNotificationManager() {
   const { data: session } = useSession();
   const [modal, setModal] = useState<ModalState>('hidden');
   const [requesting, setRequesting] = useState(false);
+  const [showIOSInfo, setShowIOSInfo] = useState(false);
 
   useEffect(() => {
     if (!session?.user) return;
@@ -105,19 +107,19 @@ export default function PushNotificationManager() {
 
     const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
 
-    // On iOS, push notifications require the PWA to be installed as standalone.
-    // We skip the install prompt per user preference, but if running standalone
-    // and permission not granted, show the settings modal.
+    // On iOS, push notifications are not reliably supported in Safari standalone PWA.
+    // Show an informational banner instead of forcing the broken permission prompt.
     if (isIOS) {
       const isStandalone =
         window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as unknown as { standalone?: boolean }).standalone === true;
 
-      if (isStandalone && (!('Notification' in window) || Notification.permission !== 'granted')) {
-        setModal('ios-settings');
+      if (isStandalone) {
+        setShowIOSInfo(true);
+        console.info('iOS standalone PWA detected: showing informational banner instead of push enforcement.');
         return;
       }
-      // Not standalone on iOS — push not supported in browser, skip enforcement
+      // Not standalone on iOS — push not supported in browser, skip entirely
       if (!isStandalone) return;
     }
 
@@ -167,6 +169,38 @@ export default function PushNotificationManager() {
       // Browser blocked the permission
       setModal('denied');
     }
+  }
+
+  // iOS informational banner (non-blocking, dismissible)
+  if (showIOSInfo) {
+    return (
+      <div className="fixed top-0 left-0 right-0 z-[9998] bg-amber-50 border-b border-amber-200 px-4 py-3">
+        <div className="max-w-4xl mx-auto flex items-start gap-3">
+          <InformationCircleIcon className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-amber-900 mb-1">
+              Meldingen op iPhone
+            </h3>
+            <p className="text-xs text-amber-800 mb-2">
+              Push-meldingen werken beperkt op iPhone in deze app. Je ontvangt live updates wanneer de app geopend is. Voor volledige pushmeldingen raden we een native app aan.
+            </p>
+            <a
+              href="/settings"
+              className="inline-block text-xs font-medium text-amber-700 hover:text-amber-900 underline"
+            >
+              Meer informatie in instellingen →
+            </a>
+          </div>
+          <button
+            onClick={() => setShowIOSInfo(false)}
+            className="flex-shrink-0 text-amber-600 hover:text-amber-900 transition-colors"
+            aria-label="Sluiten"
+          >
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (modal === 'hidden') return null;
